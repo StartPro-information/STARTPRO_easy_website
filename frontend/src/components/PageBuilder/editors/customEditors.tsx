@@ -10,6 +10,7 @@ import CyberTimelineEditor from './CyberTimelineEditor'
 import NewsListEditor from './NewsListEditor'
 import TestimonialsEditor from './TestimonialsEditor'
 import BannerCarouselEditor from './BannerCarouselEditor'
+import LinkBlockEditor from './LinkBlockEditor'
 
 type CustomEditorProps = {
   component: TemplateComponent
@@ -412,6 +413,25 @@ const renderTestimonialsEditor: CustomEditorRenderer = ({
   )
 }
 
+const renderLinkBlockEditor: CustomEditorRenderer = ({
+  component,
+  formData,
+  addArrayItem,
+  handleArrayFieldChange,
+  removeArrayItem
+}) => {
+  if (component.type !== 'link-block') return null
+  const links = Array.isArray(formData.links) ? formData.links : []
+  return (
+    <LinkBlockEditor
+      links={links}
+      onAdd={() => addArrayItem('links', { text: '', url: '' })}
+      onChange={(index, fieldKey, value) => handleArrayFieldChange('links', index, fieldKey, value)}
+      onRemove={(index) => removeArrayItem('links', index)}
+    />
+  )
+}
+
 const customEditors: Partial<Record<string, CustomEditorRenderer>> = {
   'video-player': renderVideoEditor,
   'banner-carousel': renderBannerCarouselEditor,
@@ -422,7 +442,8 @@ const customEditors: Partial<Record<string, CustomEditorRenderer>> = {
   'timeline': renderTimelineEditorBlock,
   'cyber-timeline': renderCyberTimelineEditorBlock,
   'news-list': renderNewsListEditor,
-  'testimonials': renderTestimonialsEditor
+  'testimonials': renderTestimonialsEditor,
+  'link-block': renderLinkBlockEditor
 }
 
 export const renderCustomEditor = (props: CustomEditorProps) => {
