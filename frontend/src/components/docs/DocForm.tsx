@@ -106,7 +106,7 @@ export default function DocForm({
       cleanupExisting()
 
       await loadFirstAvailable('css', ['/ck-umd/cke-global.css'], 'data-ckeditor-css')
-      await loadFirstAvailable('js', ['/ck-umd/cke-global.umd.cjs'], 'data-ckeditor-js')
+      await loadFirstAvailable('js', ['/ck-umd/cke-global.umd.js', '/ck-umd/cke-global.umd.cjs'], 'data-ckeditor-js')
 
       const ClassicEditor =
         (window as any).CKEDITOR?.ClassicEditor ||
