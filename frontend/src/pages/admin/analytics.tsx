@@ -6,6 +6,7 @@ import {
   TrendingUp,
   Users,
   FileText,
+  BookOpen,
   Eye,
   Calendar,
   RefreshCw
@@ -112,6 +113,11 @@ export default function AnalyticsPage() {
           value: item.views
         }))
 
+        const docViewsTrend = (response.data.docViewsTrend || []).map((item: any) => ({
+          name: item.date,
+          value: item.views
+        }))
+
         const userActivity = response.data.userActivity.map((item: any) => ({
           name:
             item.action === 'login'
@@ -133,6 +139,12 @@ export default function AnalyticsPage() {
           value: item.view_count
         }))
 
+        const popularDocs = (response.data.popularDocs || []).map((item: any) => ({
+          name: item.title_path || item.slug || item.title,
+          slug: item.slug,
+          value: item.view_count
+        }))
+
         const deviceStats = response.data.deviceStats.map((item: any) => ({
           name: item.device_type,
           value: item.count
@@ -151,14 +163,28 @@ export default function AnalyticsPage() {
           bounce_rate: item.bounce_rate
         }))
 
+        const docDetails = (response.data.docDetails || []).map((item: any) => ({
+          title: item.title,
+          slug: item.slug,
+          title_path: item.title_path,
+          views: item.views,
+          unique_visitors: item.unique_visitors,
+          avg_time: item.avg_time,
+          bounce_rate: item.bounce_rate
+        }))
+
         setAnalyticsData({
           pageViewsTrend,
+          docViewsTrend,
           userActivity,
           popularPages,
+          popularDocs,
           deviceStats,
           browserStats,
           metrics: response.data.metrics,
-          pageDetails
+          docMetrics: response.data.docMetrics,
+          pageDetails,
+          docDetails
         })
         setLastUpdated(new Date().toISOString())
       }
@@ -215,6 +241,20 @@ export default function AnalyticsPage() {
       value: analyticsData?.metrics?.avgTimeOnPage || '0:00',
       icon: <Calendar className="w-6 h-6" />,
       accentColor: visualPalette.series[3] || visualPalette.series[0]
+    },
+    {
+      key: 'docViews',
+      title: '文档浏览量',
+      value: formatNumber(analyticsData?.docMetrics?.pageViews),
+      icon: <BookOpen className="w-6 h-6" />,
+      accentColor: visualPalette.series[4] || visualPalette.series[0]
+    },
+    {
+      key: 'docVisitors',
+      title: '文档独立访客',
+      value: formatNumber(analyticsData?.docMetrics?.uniqueVisitors),
+      icon: <Users className="w-6 h-6" />,
+      accentColor: visualPalette.series[5] || visualPalette.series[1] || visualPalette.series[0]
     }
   ]
 
@@ -225,6 +265,13 @@ export default function AnalyticsPage() {
       subtitle: `${readableRange}的访问变化`,
       type: 'line' as const,
       data: analyticsData?.pageViewsTrend || []
+    },
+    {
+      key: 'docViewsTrend',
+      title: '文档浏览趋势',
+      subtitle: `${readableRange}的文档访问变化`,
+      type: 'line' as const,
+      data: analyticsData?.docViewsTrend || []
     },
     {
       key: 'userActivity',
@@ -241,6 +288,13 @@ export default function AnalyticsPage() {
       data: analyticsData?.popularPages || []
     },
     {
+      key: 'popularDocs',
+      title: '热门文档',
+      subtitle: '访问量最高的文档',
+      type: 'bar' as const,
+      data: analyticsData?.popularDocs || []
+    },
+    {
       key: 'deviceStats',
       title: '设备与浏览器',
       subtitle: '设备占比 + 浏览器趋势',
@@ -250,6 +304,7 @@ export default function AnalyticsPage() {
   ]
 
   const tableRows = analyticsData?.pageDetails || []
+  const docRows = analyticsData?.docDetails || []
 
   return (
     <AdminLayout title="数据分析" description="了解官网访问情况与用户行为">
@@ -361,6 +416,63 @@ export default function AnalyticsPage() {
                   <tr>
                     <td colSpan={5} className="px-4 py-6 text-center text-sm text-theme-textSecondary">
                       暂无页面数据
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="bg-semantic-panel border border-semantic-panelBorder rounded-2xl p-6" style={getShadowStyle(currentTheme.id, 1)}>
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-semibold text-theme-text">文档详情</h2>
+              <p className="text-sm text-theme-textSecondary">按照浏览量排序</p>
+            </div>
+            <span className="text-xs text-theme-textSecondary">
+              共 {docRows.length} 条记录
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-semantic-mutedBg">
+                <tr>
+                  {['文档', '浏览量', '独立访客', '平均停留时间', '跳出率'].map(header => (
+                    <th
+                      key={header}
+                      className="px-4 py-3 text-xs font-semibold text-theme-textSecondary uppercase tracking-wide"
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-semantic-panelBorder/60">
+                {docRows.length > 0 ? (
+                  docRows.map((row, index) => (
+                    <tr key={`${row.title}-${index}`} className="hover:bg-semantic-mutedBg/60 transition-colors">
+                      <td className="px-4 py-4 text-sm font-medium text-theme-text">
+                        {row.title_path || row.slug || row.title}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-theme-textSecondary">
+                        {row.views.toLocaleString('zh-CN')}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-theme-textSecondary">
+                        {row.unique_visitors.toLocaleString('zh-CN')}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-theme-textSecondary">
+                        {formatDuration(row.avg_time)}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-theme-textSecondary">
+                        {`${row.bounce_rate ?? analyticsData?.docMetrics?.bounceRate ?? 0}%`}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-theme-textSecondary">
+                      暂无文档数据
                     </td>
                   </tr>
                 )}

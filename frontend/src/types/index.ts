@@ -253,11 +253,17 @@ export interface ContactMessage {
 export interface Stats {
   total_pages: number
   published_pages: number
+  total_docs?: number
+  published_docs?: number
   total_users: number
   total_visits: number
   today_visits: number
   week_visits: number
   month_visits: number
+  total_doc_visits?: number
+  today_doc_visits?: number
+  week_doc_visits?: number
+  month_doc_visits?: number
   recent_activities: Activity[]
   system_status?: {
     cpu_percent?: number
@@ -281,7 +287,17 @@ export interface AnalyticsData {
     name: string
     value: number
   }[]
+  docViewsTrend?: {
+    name: string
+    value: number
+  }[]
   popularPages: {
+    name: string
+    value: number
+  }[]
+  popularDocs?: {
+    slug?: string
+    title_path?: string
     name: string
     value: number
   }[]
@@ -311,6 +327,22 @@ export interface AnalyticsData {
     avg_time: number
     bounce_rate: number
   }[]
+  docDetails?: {
+    title: string
+    slug?: string
+    title_path?: string
+    views: number
+    unique_visitors: number
+    avg_time: number
+    bounce_rate: number
+  }[]
+  docMetrics?: {
+    totalVisits: number
+    uniqueVisitors: number
+    pageViews: number
+    avgTimeOnPage: string
+    bounceRate: number
+  }
 }
 
 export interface Activity {

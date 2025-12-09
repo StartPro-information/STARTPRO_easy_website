@@ -1,7 +1,82 @@
 import { ComponentDefinition } from '@/types/templates'
-import { FeatureGridLargePreview, FeatureGridPreview, NewsListPreview, PricingCardsPreview, StatsSectionPreview, TeamGridPreview, TestimonialsPreview, TimelinePreview } from '@/components/PageBuilder/previews'
+import { FeatureGridLargePreview, FeatureGridPreview, NewsListPreview, PricingCardsPreview, ProductShowcaseCardPreview, StatsSectionPreview, TeamGridPreview, TestimonialsPreview, TimelinePreview } from '@/components/PageBuilder/previews'
 
 export const cardComponents: ComponentDefinition[] = [
+  {
+      type: 'product-showcase-card',
+      name: '商品展示卡片',
+      description: '突出单款商品的大图展示卡片，带双按钮与主题化背景',
+      icon: '🛍️',
+      category: '卡片组件',
+      defaultProps: {
+        alignment: 'center',
+        cardsPerRow: 3,
+        widthOption: 'full',
+        backgroundColorOption: 'default',
+        cards: [
+          {
+            eyebrow: '新品',
+            title: 'AirPods Pro 3',
+            subtitle: 'The world’s best in-ear Active Noise Cancellation.',
+            badgeText: '更强的低噪、空间音频与更长续航。',
+            image: 'https://dummyimage.com/1200x800/edf2f7/0f172a&text=Product',
+            primaryButtonText: '了解更多',
+            primaryButtonLink: '#',
+            secondaryButtonText: '购买',
+            secondaryButtonLink: '#'
+          }
+        ]
+      },
+      editableFields: [
+        {
+          key: 'alignment',
+          label: '对齐方式',
+          type: 'text',
+          value: 'center',
+          options: [
+            { label: '居中', value: 'center' },
+            { label: '左对齐', value: 'left' }
+          ]
+        },
+        {
+          key: 'cardsPerRow',
+          label: '每行卡片数',
+          type: 'text',
+          value: '3',
+          options: [
+            { label: '1', value: '1' },
+            { label: '2', value: '2' },
+            { label: '3', value: '3' },
+            { label: '4', value: '4' },
+            { label: '5', value: '5' },
+            { label: '6', value: '6' }
+          ]
+        },
+        { key: 'cards', label: '卡片列表', type: 'array', value: [] },
+        {
+          key: 'widthOption',
+          label: '宽度选项',
+          type: 'text',
+          value: 'full',
+          options: [
+            { label: '全宽', value: 'full' },
+            { label: '标准宽度', value: 'standard' }
+          ]
+        },
+        {
+          key: 'backgroundColorOption',
+          label: '背景色选项',
+          type: 'text',
+          value: 'default',
+          options: [
+            { label: '默认背景色', value: 'default' },
+            { label: '透明背景色', value: 'transparent' }
+          ]
+        }
+      ],
+      previewComponent: ProductShowcaseCardPreview
+    },
+
   {
       type: 'feature-grid',
       name: '功能网格',

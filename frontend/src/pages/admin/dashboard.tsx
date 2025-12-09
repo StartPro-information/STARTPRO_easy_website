@@ -3,6 +3,7 @@ import AdminLayout from '@/components/AdminLayout'
 import { motion } from 'framer-motion'
 import {
   FileText,
+  BookOpen,
   Users,
   BarChart3,
   Activity,
@@ -65,7 +66,7 @@ export default function AdminDashboard() {
         </motion.div>
 
         {/* 统计卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             title="总页面数"
             value={stats?.total_pages || 0}
@@ -81,16 +82,30 @@ export default function AdminDashboard() {
             delay={0.2}
           />
           <StatCard
-            title="总访问量"
-            value={stats?.total_visits || 0}
-            icon={<BarChart3 className="w-6 h-6" />}
-            color="from-orange-500 to-orange-600"
+            title="总文档数"
+            value={stats?.total_docs || 0}
+            icon={<BookOpen className="w-6 h-6" />}
+            color="from-purple-500 to-purple-600"
             delay={0.3}
+          />
+          <StatCard
+            title="已发布文档"
+            value={stats?.published_docs || 0}
+            icon={<BookOpen className="w-6 h-6" />}
+            color="from-indigo-500 to-indigo-600"
+            delay={0.35}
           />
         </div>
 
         {/* 访问量统计卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="总访问量（页面）"
+            value={stats?.total_visits || 0}
+            icon={<BarChart3 className="w-6 h-6" />}
+            color="from-orange-500 to-orange-600"
+            delay={0.4}
+          />
           <StatCard
             title="当天访问量"
             value={stats?.today_visits || 0}
@@ -111,6 +126,38 @@ export default function AdminDashboard() {
             icon={<Activity className="w-6 h-6" />}
             color="from-indigo-500 to-indigo-600"
             delay={0.7}
+          />
+        </div>
+
+        {/* 文档访问量统计卡片 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="总访问量（文档）"
+            value={stats?.total_doc_visits || 0}
+            icon={<BookOpen className="w-6 h-6" />}
+            color="from-orange-500 to-orange-600"
+            delay={0.45}
+          />
+          <StatCard
+            title="当天文档访问"
+            value={stats?.today_doc_visits || 0}
+            icon={<Calendar className="w-6 h-6" />}
+            color="from-cyan-500 to-cyan-600"
+            delay={0.55}
+          />
+          <StatCard
+            title="近一周文档访问"
+            value={stats?.week_doc_visits || 0}
+            icon={<TrendingUp className="w-6 h-6" />}
+            color="from-teal-500 to-teal-600"
+            delay={0.65}
+          />
+          <StatCard
+            title="近一月文档访问"
+            value={stats?.month_doc_visits || 0}
+            icon={<Activity className="w-6 h-6" />}
+            color="from-indigo-500 to-indigo-600"
+            delay={0.75}
           />
         </div>
 

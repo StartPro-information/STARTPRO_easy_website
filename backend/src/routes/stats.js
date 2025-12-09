@@ -16,6 +16,15 @@ router.get('/dashboard', authenticateToken, requireEditor, async (req, res) => {
       FROM pages
     `)
 
+    // 获取文档统计（总文档数、已发布文档数，仅doc类型）
+    const [docStats] = await db.execute(`
+      SELECT
+        COUNT(*) as total_docs,
+        SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published_docs
+      FROM docs
+      WHERE type = 'doc'
+    `)
+
     // 获取用户统计
     const [userStats] = await db.execute(`
       SELECT
@@ -59,6 +68,34 @@ router.get('/dashboard', authenticateToken, requireEditor, async (req, res) => {
       SELECT COUNT(*) as month_visits
       FROM activity_logs
       WHERE action = 'view' AND resource_type = 'page'
+      AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    `);
+
+    // 获取文档访问量
+    const [totalDocVisits] = await db.execute(`
+      SELECT COUNT(*) as total_visits
+      FROM activity_logs
+      WHERE action = 'view' AND resource_type = 'doc'
+    `);
+
+    const [todayDocVisits] = await db.execute(`
+      SELECT COUNT(*) as today_visits
+      FROM activity_logs
+      WHERE action = 'view' AND resource_type = 'doc'
+      AND DATE(created_at) = CURDATE()
+    `);
+
+    const [weekDocVisits] = await db.execute(`
+      SELECT COUNT(*) as week_visits
+      FROM activity_logs
+      WHERE action = 'view' AND resource_type = 'doc'
+      AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+    `);
+
+    const [monthDocVisits] = await db.execute(`
+      SELECT COUNT(*) as month_visits
+      FROM activity_logs
+      WHERE action = 'view' AND resource_type = 'doc'
       AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
     `);
 
@@ -174,12 +211,18 @@ router.get('/dashboard', authenticateToken, requireEditor, async (req, res) => {
         // 页面统计
         total_pages: pageStats[0].total_pages,
         published_pages: pageStats[0].published_pages,
+        total_docs: docStats[0].total_docs,
+        published_docs: docStats[0].published_docs,
 
         // 访问量统计
         total_visits: totalVisits[0].total_visits,
         today_visits: todayVisits[0].today_visits,
         week_visits: weekVisits[0].week_visits,
         month_visits: monthVisits[0].month_visits,
+        total_doc_visits: totalDocVisits[0].total_visits,
+        today_doc_visits: todayDocVisits[0].today_visits,
+        week_doc_visits: weekDocVisits[0].week_visits,
+        month_doc_visits: monthDocVisits[0].month_visits,
 
         // 用户统计
         total_users: userStats[0].total_users,
@@ -290,6 +333,18 @@ router.get('/analytics', authenticateToken, requireEditor, async (req, res) => {
       ORDER BY date
     `)
 
+    // 获取文档浏览趋势数据
+    const [docViewsTrend] = await db.execute(`
+      SELECT
+        DATE(al.created_at) as date,
+        COUNT(*) as views
+      FROM activity_logs al
+      WHERE al.action = 'view' AND al.resource_type = 'doc'
+      ${dateCondition}
+      GROUP BY DATE(al.created_at)
+      ORDER BY date
+    `)
+
     // 获取热门页面
     const [popularPages] = await db.execute(`
       SELECT
@@ -300,6 +355,23 @@ router.get('/analytics', authenticateToken, requireEditor, async (req, res) => {
       WHERE al.action = 'view' AND al.resource_type = 'page'
       ${dateCondition}
       GROUP BY p.id, p.title
+      ORDER BY view_count DESC
+      LIMIT 10
+    `)
+
+    // 获取热门文档
+    const [popularDocs] = await db.execute(`
+      SELECT
+        d.id,
+        d.title,
+        d.slug,
+        d.parent_id,
+        COUNT(al.id) as view_count
+      FROM activity_logs al
+      JOIN docs d ON al.resource_id = d.id
+      WHERE al.action = 'view' AND al.resource_type = 'doc'
+      ${dateCondition}
+      GROUP BY d.id, d.title, d.slug, d.parent_id
       ORDER BY view_count DESC
       LIMIT 10
     `)
@@ -348,7 +420,7 @@ router.get('/analytics', authenticateToken, requireEditor, async (req, res) => {
       GROUP BY browser
     `)
 
-    // 获取关键指标（兼容 MySQL 5.7，无窗口函数）
+    // 获取关键指标（兼容 MySQL 5.7，无窗口函数）——页面
     const [viewRows] = await db.execute(`
       SELECT
         al.id,
@@ -363,6 +435,21 @@ router.get('/analytics', authenticateToken, requireEditor, async (req, res) => {
       ORDER BY al.created_at ASC
     `)
 
+    // 文档浏览记录
+    const [docViewRows] = await db.execute(`
+      SELECT
+        al.id,
+        al.resource_id,
+        al.user_id,
+        al.ip_address,
+        al.user_agent,
+        al.created_at
+      FROM activity_logs al
+      WHERE al.action = 'view' AND al.resource_type = 'doc'
+      ${dateCondition}
+      ORDER BY al.created_at ASC
+    `)
+
     const buildVisitorId = (row) => {
       if (row.user_id) return String(row.user_id)
       if (row.ip_address) return String(row.ip_address)
@@ -370,7 +457,7 @@ router.get('/analytics', authenticateToken, requireEditor, async (req, res) => {
       return 'unknown'
     }
 
-    // 第一遍：标记 session，并统计每个 session 的页面数
+    // 第一遍：标记 session，并统计每个 session 的页面数（页面）
     const visitorState = new Map()
     const sessionPageCounts = new Map()
     const events = []
@@ -397,7 +484,7 @@ router.get('/analytics', authenticateToken, requireEditor, async (req, res) => {
       })
     }
 
-    // 第二遍：按 session 计算停留时长
+    // 第二遍：按 session 计算停留时长（页面）
     const sessionsMap = new Map()
     for (const evt of events) {
       const arr = sessionsMap.get(evt.session_id) || []
@@ -420,7 +507,7 @@ router.get('/analytics', authenticateToken, requireEditor, async (req, res) => {
       }
     }
 
-    // 汇总整体指标
+    // 汇总整体指标（页面）
     const totalSessions = sessionPageCounts.size
     const totalPageViews = eventMetrics.length
     const uniqueVisitors = new Set(eventMetrics.map(e => e.visitor_id)).size
@@ -480,6 +567,135 @@ router.get('/analytics', authenticateToken, requireEditor, async (req, res) => {
       })
       .slice(0, 20)
 
+    // 文档指标统计（重用方法）
+    const docVisitorState = new Map()
+    const docSessionCounts = new Map()
+    const docEvents = []
+
+    for (const row of docViewRows) {
+      const visitorId = buildVisitorId(row)
+      const createdMs = new Date(row.created_at).getTime()
+      const state = docVisitorState.get(visitorId) || { lastTime: null, sessionIndex: 0 }
+
+      if (state.lastTime === null || createdMs - state.lastTime > 30 * 60 * 1000) {
+        state.sessionIndex += 1
+      }
+      state.lastTime = createdMs
+      docVisitorState.set(visitorId, state)
+
+      const sessionId = `${visitorId}-${state.sessionIndex}`
+      docSessionCounts.set(sessionId, (docSessionCounts.get(sessionId) || 0) + 1)
+
+      docEvents.push({
+        resource_id: row.resource_id,
+        visitor_id: visitorId,
+        session_id: sessionId,
+        created_ms: createdMs
+      })
+    }
+
+    const docSessionsMap = new Map()
+    for (const evt of docEvents) {
+      const arr = docSessionsMap.get(evt.session_id) || []
+      arr.push(evt)
+      docSessionsMap.set(evt.session_id, arr)
+    }
+
+    const docEventMetrics = []
+    for (const sessionEvents of docSessionsMap.values()) {
+      sessionEvents.sort((a, b) => a.created_ms - b.created_ms)
+      for (let i = 0; i < sessionEvents.length; i++) {
+        const current = sessionEvents[i]
+        const next = sessionEvents[i + 1]
+        let duration = 30
+        if (next) {
+          const diffSec = Math.max(1, Math.round((next.created_ms - current.created_ms) / 1000))
+          duration = Math.min(1800, diffSec)
+        }
+        docEventMetrics.push({ ...current, duration_seconds: duration })
+      }
+    }
+
+    const docSessions = docSessionCounts.size
+    const docTotalViews = docEventMetrics.length
+    const docUniqueVisitors = new Set(docEventMetrics.map(e => e.visitor_id)).size
+    const docAvgDuration =
+      docTotalViews > 0 ? docEventMetrics.reduce((sum, e) => sum + e.duration_seconds, 0) / docTotalViews : 0
+    const docSinglePageSessions = Array.from(docSessionCounts.values()).filter(count => count === 1).length
+    const docBounceRatio = docSessions > 0 ? docSinglePageSessions / docSessions : 0
+
+    const docAgg = new Map()
+    for (const evt of docEventMetrics) {
+      const agg = docAgg.get(evt.resource_id) || {
+        views: 0,
+        durationSum: 0,
+        uniqueVisitors: new Set(),
+        bounceHits: 0
+      }
+      agg.views += 1
+      agg.durationSum += evt.duration_seconds
+      agg.uniqueVisitors.add(evt.visitor_id)
+      if ((docSessionCounts.get(evt.session_id) || 0) === 1) {
+        agg.bounceHits += 1
+      }
+      docAgg.set(evt.resource_id, agg)
+    }
+
+    // 取全量文档（含文件夹），用于拼接标题层级；后续指标仅针对 type = 'doc'
+    const [allDocs] = await db.execute(`
+      SELECT id, title, slug, parent_id, type, updated_at
+      FROM docs
+    `)
+
+    // 构建文档标题路径（父级到子级）
+    const docMap = new Map()
+    allDocs.forEach((d) => docMap.set(d.id, d))
+    const docPathCache = new Map()
+    const buildDocTitlePath = (id) => {
+      if (docPathCache.has(id)) return docPathCache.get(id)
+      const node = docMap.get(id)
+      if (!node) return ''
+      const parentPath = node.parent_id ? buildDocTitlePath(node.parent_id) : ''
+      const path = parentPath ? `${parentPath} / ${node.title}` : node.title
+      docPathCache.set(id, path)
+      return path
+    }
+
+    const popularDocsWithPath = popularDocs.map((d) => ({
+      ...d,
+      title_path: buildDocTitlePath(d.id)
+    }))
+
+    const docs = allDocs.filter((d) => d.type === 'doc')
+
+    const docDetails = docs
+      .map(d => {
+        const agg = docAgg.get(d.id) || {
+          views: 0,
+          durationSum: 0,
+          uniqueVisitors: new Set(),
+          bounceHits: 0
+        }
+        const count = agg.views || 0
+        const avgDuration = count > 0 ? agg.durationSum / count : 0
+        const bounceRatioPage = count > 0 ? agg.bounceHits / count : 0
+        return {
+          title: d.title,
+          slug: d.slug,
+          title_path: buildDocTitlePath(d.id),
+          views: count,
+          unique_visitors: agg.uniqueVisitors.size,
+          avg_time: avgDuration,
+          bounce_rate: Math.round(bounceRatioPage * 100),
+          updated_at: d.updated_at
+        }
+      })
+      .sort((a, b) => {
+        if (b.views !== a.views) return b.views - a.views
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      })
+      .slice(0, 20)
+
     // 格式化平均停留时间
     const formatAverageTime = (seconds) => {
       if (!seconds || seconds <= 0) return '0:00';
@@ -500,7 +716,9 @@ router.get('/analytics', authenticateToken, requireEditor, async (req, res) => {
       success: true,
       data: {
         pageViewsTrend,
+        docViewsTrend,
         popularPages,
+        popularDocs: popularDocsWithPath,
         userActivity,
         deviceStats,
         browserStats,
@@ -513,7 +731,15 @@ router.get('/analytics', authenticateToken, requireEditor, async (req, res) => {
             ? Math.round(engagementSummary.bounce_ratio * 100)
             : 0
         },
-        pageDetails
+        pageDetails,
+        docDetails,
+        docMetrics: {
+          totalVisits: docSessions || 0,
+          uniqueVisitors: docUniqueVisitors || 0,
+          pageViews: docTotalViews || 0,
+          avgTimeOnPage: formatAverageTime(docAvgDuration),
+          bounceRate: Math.round((docBounceRatio || 0) * 100)
+        }
       }
     })
   } catch (error) {

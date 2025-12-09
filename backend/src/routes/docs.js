@@ -148,6 +148,23 @@ router.get(
         return res.status(404).json({ success: false, message: '文档不存在' })
       }
 
+      // 记录前台浏览日志（不影响主流程）
+      try {
+        await db.execute(
+          `INSERT INTO activity_logs (user_id, action, resource_type, resource_id, description, ip_address, user_agent)
+           VALUES (?, 'view', 'doc', ?, ?, ?, ?)`,
+          [
+            null,
+            docs[0].id,
+            `public view doc: ${docs[0].title || docs[0].slug}`,
+            req.ip || req.connection?.remoteAddress || '',
+            req.get('User-Agent') || ''
+          ]
+        )
+      } catch (logError) {
+        console.error('记录文档浏览日志失败:', logError)
+      }
+
       res.json({ success: true, data: docs[0] })
     } catch (error) {
       console.error('get doc detail failed:', error)

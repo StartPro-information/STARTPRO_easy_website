@@ -9,6 +9,7 @@ interface DocsLayoutProps {
   footer?: { copyright?: string | null; icp?: string | null }
   breadcrumbs: React.ReactNode
   sidebar: React.ReactNode
+  toc?: React.ReactNode
   children: React.ReactNode
 }
 
@@ -19,6 +20,7 @@ export const DocsLayout: React.FC<DocsLayoutProps> = ({
   footer,
   breadcrumbs,
   sidebar,
+  toc,
   children
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -64,13 +66,18 @@ export const DocsLayout: React.FC<DocsLayoutProps> = ({
 
         <div className="doc-breadcrumb-bar">{breadcrumbs}</div>
 
-        <div className="doc-grid">
+        <div className={`doc-grid ${toc ? 'has-toc' : ''}`}>
           <aside className={`doc-aside ${sidebarOpen ? 'is-open' : ''}`}>
             <div className="doc-aside__inner">
               {sidebar}
             </div>
           </aside>
           <main className="doc-main">{children}</main>
+          {toc ? (
+            <aside className="doc-toc">
+              <div className="doc-toc__inner">{toc}</div>
+            </aside>
+          ) : null}
         </div>
       </div>
 

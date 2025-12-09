@@ -15,6 +15,7 @@ import ImageTextHorizontalEditor from './ImageTextHorizontalEditor'
 import RawHtmlEditor from './RawHtmlEditor'
 import VideoEditor from './VideoEditor'
 import TableEditor from './TableEditor'
+import ProductShowcaseCardEditor from './ProductShowcaseCardEditor'
 
 export type CustomEditorProps = {
   component: TemplateComponent
@@ -143,6 +144,28 @@ const renderPricingEditor: CustomEditorRenderer = ({
       onRemove={(index) => removeArrayItem('plans', index)}
       cardsPerRow={formData.cardsPerRow}
       onCardsPerRowChange={(value) => handleFieldChange('cardsPerRow', value)}
+    />
+  )
+}
+
+const renderProductShowcaseCardEditor: CustomEditorRenderer = ({
+  component,
+  formData,
+  handleFieldChange,
+  handleArrayFieldChange,
+  addArrayItem,
+  removeArrayItem,
+  openAssetPickerWithValue
+}) => {
+  if (component.type !== 'product-showcase-card') return null
+  return (
+    <ProductShowcaseCardEditor
+      formData={formData}
+      handleFieldChange={handleFieldChange}
+      handleArrayFieldChange={handleArrayFieldChange}
+      addArrayItem={addArrayItem}
+      removeArrayItem={removeArrayItem}
+      openAssetPickerWithValue={openAssetPickerWithValue}
     />
   )
 }
@@ -409,7 +432,8 @@ const customEditors: Partial<Record<string, CustomEditorRenderer>> = {
   'table': renderTableEditor,
   'image-text': renderImageTextEditor,
   'image-text-horizontal': renderImageTextHorizontalEditor,
-  'raw-html': renderRawHtmlEditor
+  'raw-html': renderRawHtmlEditor,
+  'product-showcase-card': renderProductShowcaseCardEditor
 }
 
 export { customEditors }

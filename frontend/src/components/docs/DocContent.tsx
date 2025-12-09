@@ -4,9 +4,18 @@ interface DocContentProps {
   title: string
   summary?: string | null
   html: string
+  onHeadingsChange?: (headings: { id: string; text: string; level: number }[]) => void
+  onActiveHeadingChange?: (id: string) => void
 }
 
-export const DocContent: React.FC<DocContentProps> = ({ title, summary, html }) => {
+const slugify = (text: string) =>
+  text
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\u4e00-\u9fa5\- ]+/g, '')
+    .replace(/\s+/g, '-')
+
+export const DocContent: React.FC<DocContentProps> = ({ title, summary, html, onHeadingsChange, onActiveHeadingChange }) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const copyText = async (text: string) => {
@@ -56,10 +65,50 @@ export const DocContent: React.FC<DocContentProps> = ({ title, summary, html }) 
     })
   }, [html])
 
+  useEffect(() => {
+    const root = containerRef.current
+    if (!root) return
+
+    const headingEls = Array.from(root.querySelectorAll<HTMLHeadingElement>('h1, h2'))
+    const headings = headingEls.map((el, idx) => {
+      let id = el.id
+      const text = (el.textContent || '').trim() || `heading-${idx + 1}`
+      if (!id) {
+        id = slugify(text) || `heading-${idx + 1}`
+        el.id = id
+      }
+      return { id, text, level: Number(el.tagName.replace('H', '')) || 2 }
+    })
+
+    onHeadingsChange?.(headings)
+    if (!headingEls.length) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => (a.target as HTMLElement).offsetTop - (b.target as HTMLElement).offsetTop)
+        if (visible[0]) {
+          onActiveHeadingChange?.((visible[0].target as HTMLElement).id)
+        }
+      },
+      {
+        rootMargin: '-20% 0px -60% 0px',
+        threshold: [0, 0.25, 0.5, 1]
+      }
+    )
+
+    headingEls.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [html, onHeadingsChange, onActiveHeadingChange])
+
   return (
     <div className="doc-main__inner">
       <header className="doc-header">
-        <h1 className="doc-title">{title}</h1>
+        <h1 className="doc-title">
+          <span aria-hidden="true" style={{ marginRight: '8px' }}>📄</span>
+          {title}
+        </h1>
         {summary && <p className="doc-summary">{summary}</p>}
       </header>
       <div ref={containerRef} className="doc-html" dangerouslySetInnerHTML={{ __html: html }} />

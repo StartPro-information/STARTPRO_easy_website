@@ -60,6 +60,7 @@ export type ComponentType =
   | 'image-text-horizontal'
   | 'banner-carousel'
   | 'premium-pricing'
+  | 'product-showcase-card'
   | 'raw-html'
   | 'link-block'
   | 'table'
