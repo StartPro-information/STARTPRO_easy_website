@@ -249,7 +249,7 @@ export default function AdminLayout({
                 onClick={() => setIsSidebarOpen(false)}
                 className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                   isMenuActive(item.href)
-                    ? 'bg-semantic-hero-accent text-white shadow-semantic'
+                    ? 'bg-semantic-hero-accent/20 text-theme-text border border-semantic-hero-accent/50 shadow-semantic'
                     : 'text-theme-textSecondary hover:text-theme-text hover:bg-semantic-mutedBg/80'
                 }`}
               >
