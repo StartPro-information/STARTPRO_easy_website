@@ -64,10 +64,9 @@ export default function ChangePasswordModal({ isOpen, onClose, onPasswordChanged
 
     setIsSubmitting(true)
     try {
-      const payload: any = {
-        current_password: data.currentPassword,
-        new_password: data.newPassword,
-        new_password_confirmation: data.confirmPassword
+      const payload = {
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword
       }
 
       const response = await authApi.updateProfile(payload)
