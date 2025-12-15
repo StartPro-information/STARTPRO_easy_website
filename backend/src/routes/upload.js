@@ -4,6 +4,154 @@ const path = require('path')
 const fs = require('fs')
 const router = express.Router()
 const { authenticateToken, requireEditor } = require('../middleware/auth')
+const db = require('../config/database')
+
+let sharp = null
+try {
+  sharp = require('sharp')
+} catch (e) {
+  sharp = null
+}
+
+const DEFAULT_UPLOAD_PREFERENCES = {
+  image_compress_enabled: 0,
+  image_compress_level: 'medium'
+}
+
+const MAX_COMPRESS_MEGAPIXELS = 40
+const MAX_COMPRESS_CONCURRENCY = Number(process.env.IMAGE_COMPRESS_CONCURRENCY || 2)
+let compressActive = 0
+const compressQueue = []
+
+const runWithCompressLimit = (fn) =>
+  new Promise((resolve, reject) => {
+    const run = async () => {
+      compressActive += 1
+      try {
+        resolve(await fn())
+      } catch (err) {
+        reject(err)
+      } finally {
+        compressActive -= 1
+        const next = compressQueue.shift()
+        if (next) next()
+      }
+    }
+
+    if (compressActive < MAX_COMPRESS_CONCURRENCY) run()
+    else compressQueue.push(run)
+  })
+
+let uploadPreferencesCache = { value: null, expiresAt: 0 }
+const loadUploadPreferences = async () => {
+  const now = Date.now()
+  if (uploadPreferencesCache.value && uploadPreferencesCache.expiresAt > now) {
+    return uploadPreferencesCache.value
+  }
+
+  try {
+    const [rows] = await db.execute(
+      `SELECT image_compress_enabled, image_compress_level
+       FROM upload_preferences
+       WHERE id = 1
+       LIMIT 1`
+    )
+    const value = rows && rows[0] ? rows[0] : DEFAULT_UPLOAD_PREFERENCES
+    uploadPreferencesCache = { value, expiresAt: now + 10_000 }
+    return value
+  } catch (e) {
+    return DEFAULT_UPLOAD_PREFERENCES
+  }
+}
+
+const saveUploadPreferences = async ({ image_compress_enabled, image_compress_level }, userId) => {
+  const enabledVal = image_compress_enabled ? 1 : 0
+  const allowedLevels = new Set(['light', 'medium', 'heavy'])
+  const levelVal = allowedLevels.has(image_compress_level) ? image_compress_level : 'medium'
+
+  await db.execute(
+    `INSERT INTO upload_preferences (id, image_compress_enabled, image_compress_level, updated_by)
+     VALUES (1, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE
+       image_compress_enabled = VALUES(image_compress_enabled),
+       image_compress_level = VALUES(image_compress_level),
+       updated_by = VALUES(updated_by)`,
+    [enabledVal, levelVal, userId || null]
+  )
+
+  uploadPreferencesCache = { value: null, expiresAt: 0 }
+  return { image_compress_enabled: enabledVal, image_compress_level: levelVal }
+}
+
+const isCompressibleRasterImage = (mimetype, filename = '') => {
+  const ext = path.extname(filename).toLowerCase()
+  if (mimetype === 'image/jpeg' || mimetype === 'image/jpg') return true
+  if (mimetype === 'image/png') return true
+  if (!mimetype || mimetype === 'application/octet-stream') {
+    return ext === '.jpg' || ext === '.jpeg' || ext === '.png'
+  }
+  return false
+}
+
+const maybeCompressUploadedImage = async ({ filePath, mimetype, filename, level }) => {
+  if (!sharp) return { applied: false, reason: 'sharp_not_available' }
+  if (!filePath) return { applied: false, reason: 'missing_path' }
+  if (!isCompressibleRasterImage(mimetype, filename)) return { applied: false, reason: 'not_supported' }
+
+  const originalStat = await fs.promises.stat(filePath).catch(() => null)
+  if (!originalStat) return { applied: false, reason: 'missing_file' }
+
+  const meta = await sharp(filePath).metadata().catch(() => null)
+  if (meta?.width && meta?.height) {
+    const mp = (meta.width * meta.height) / 1_000_000
+    if (mp > MAX_COMPRESS_MEGAPIXELS) {
+      return { applied: false, reason: 'too_large', megapixels: mp, originalSize: originalStat.size }
+    }
+  }
+
+  const tmpPath = `${filePath}.tmp`
+  const normalizedLevel = ['light', 'medium', 'heavy'].includes(level) ? level : 'medium'
+  const jpegQuality = normalizedLevel === 'light' ? 88 : normalizedLevel === 'heavy' ? 65 : 80
+  const pngCompressionLevel = normalizedLevel === 'light' ? 6 : 9
+  const pngPalette = normalizedLevel !== 'light'
+  const pngEffort = normalizedLevel === 'light' ? 5 : normalizedLevel === 'heavy' ? 10 : 8
+  const pngColors = normalizedLevel === 'heavy' ? 128 : 256
+
+  const ext = path.extname(filename || filePath).toLowerCase()
+  if (mimetype === 'image/png' || ext === '.png') {
+    await sharp(filePath)
+      .rotate()
+      .png({
+        compressionLevel: pngCompressionLevel,
+        adaptiveFiltering: true,
+        palette: pngPalette,
+        colors: pngPalette ? pngColors : undefined,
+        effort: pngEffort
+      })
+      .toFile(tmpPath)
+  } else {
+    await sharp(filePath)
+      .rotate()
+      .jpeg({ quality: jpegQuality, mozjpeg: true, progressive: true })
+      .toFile(tmpPath)
+  }
+
+  const tmpStat = await fs.promises.stat(tmpPath).catch(() => null)
+  if (!tmpStat) {
+    await fs.promises.unlink(tmpPath).catch(() => {})
+    return { applied: false, reason: 'compress_failed' }
+  }
+
+  if (tmpStat.size >= originalStat.size) {
+    await fs.promises.unlink(tmpPath).catch(() => {})
+    return { applied: false, reason: 'larger_after_compress', originalSize: originalStat.size, finalSize: originalStat.size }
+  }
+
+  await fs.promises.unlink(filePath).catch(() => {})
+  await fs.promises.rename(tmpPath, filePath)
+
+  return { applied: true, originalSize: originalStat.size, finalSize: tmpStat.size, level: normalizedLevel }
+}
 
 
 // 确保上传目录存在
@@ -240,18 +388,85 @@ router.post('/image', authenticateToken, requireEditor, (req, res) => {
     const folder = req.body.folder || 'root';
     const fileUrl = getFileUrl(req.file.filename, folder, req.file.mimetype);
 
-    res.json({
-      success: true,
-      message: '图片上传成功',
-      data: {
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        size: req.file.size,
-        url: fileUrl,
-        fullUrl: `${req.protocol}://localhost:3003${fileUrl}`
+    ;(async () => {
+      const prefs = await loadUploadPreferences()
+      const enabled = Number(prefs.image_compress_enabled) === 1
+      const level = prefs.image_compress_level || 'medium'
+
+      let compression = enabled ? { applied: false } : { applied: false, reason: 'disabled' }
+      if (enabled) {
+        try {
+          compression = await runWithCompressLimit(() =>
+            maybeCompressUploadedImage({
+              filePath: req.file.path,
+              mimetype: req.file.mimetype,
+              filename: req.file.filename,
+              level
+            })
+          )
+        } catch (e) {
+          compression = { applied: false, reason: 'compress_error' }
+        }
       }
+
+      const finalStat = await fs.promises.stat(req.file.path).catch(() => null)
+
+      res.json({
+        success: true,
+        message:
+          enabled && compression.reason === 'too_large'
+            ? '图片上传成功（图片过大，已跳过压缩）'
+            : '图片上传成功',
+        data: {
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          size: finalStat ? finalStat.size : req.file.size,
+          url: fileUrl,
+          fullUrl: `${req.protocol}://localhost:3003${fileUrl}`,
+          compression
+        }
+      })
+    })().catch((error) => {
+      console.error('Upload post-process failed:', error)
+      res.json({
+        success: true,
+        message: '图片上传成功',
+        data: {
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          size: req.file.size,
+          url: fileUrl,
+          fullUrl: `${req.protocol}://localhost:3003${fileUrl}`,
+          compression: { applied: false, reason: 'post_process_failed' }
+        }
+      })
     })
   })
+})
+
+// 上传偏好（素材管理配置）
+router.get('/preferences', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const prefs = await loadUploadPreferences()
+    res.json({ success: true, data: prefs })
+  } catch (error) {
+    console.error('get upload preferences failed:', error)
+    res.status(500).json({ success: false, message: '获取上传配置失败' })
+  }
+})
+
+router.put('/preferences', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const { image_compress_enabled, image_compress_level } = req.body || {}
+    const saved = await saveUploadPreferences(
+      { image_compress_enabled: Boolean(image_compress_enabled), image_compress_level },
+      req.user?.id
+    )
+    res.json({ success: true, message: '保存成功', data: saved })
+  } catch (error) {
+    console.error('save upload preferences failed:', error)
+    res.status(500).json({ success: false, message: '保存上传配置失败' })
+  }
 })
 
 // 上传文件

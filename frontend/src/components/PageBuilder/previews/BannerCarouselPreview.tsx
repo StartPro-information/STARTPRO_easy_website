@@ -228,6 +228,10 @@ export const BannerCarousel: React.FC<{ component: TemplateComponent }> = ({ com
         interval={interval}
         showIndicators={showIndicators}
         showArrows={showArrows}
+        titleColorMode={titleColorMode}
+        customTitleColor={customTitleColor}
+        subtitleColorMode={subtitleColorMode}
+        customSubtitleColor={customSubtitleColor}
         className="rounded-xl overflow-hidden"
       />
 

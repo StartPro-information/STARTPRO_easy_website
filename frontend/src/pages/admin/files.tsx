@@ -50,6 +50,8 @@ interface FolderItem {
   children?: FolderItem[]
 }
 
+type ImageCompressLevel = 'light' | 'medium' | 'heavy'
+
 export default function FilesPage() {
   const [activeTab, setActiveTab] = useState<'user' | 'system'>('user')
   const [files, setFiles] = useState<FileItem[]>([])
@@ -78,8 +80,26 @@ export default function FilesPage() {
   const [newFolderName, setNewFolderName] = useState('')
   const [parentFolderForNew, setParentFolderForNew] = useState<string>('root')
 
+  const [imageCompressEnabled, setImageCompressEnabled] = useState(false)
+  const [imageCompressLevel, setImageCompressLevel] = useState<ImageCompressLevel>('medium')
+  const [imageCompressSaving, setImageCompressSaving] = useState(false)
+
   useEffect(() => {
     fetchFilesAndFolders()
+  }, [])
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const res: any = await uploadApi.getPreferences()
+        if (res?.success && res?.data) {
+          setImageCompressEnabled(Boolean(res.data.image_compress_enabled))
+          setImageCompressLevel((res.data.image_compress_level || 'medium') as ImageCompressLevel)
+        }
+      } catch (e) {
+        // preferences are optional; ignore failures
+      }
+    })()
   }, [])
 
   const buildFolderTree = (flatFolders: FolderItem[]): FolderItem[] => {
@@ -379,11 +399,28 @@ export default function FilesPage() {
         setUploadProgress(0)
 
         const uploader = file.type.startsWith('image/') ? uploadApi.image : uploadApi.file
-        await uploader(
+        const res: any = await uploader(
           file,
           (progress) => setUploadProgress(progress),
           folderPath !== 'root' ? folderPath : undefined
         )
+
+        if (file.type.startsWith('image/') && res?.success && res?.data?.compression) {
+          const c = res.data.compression
+          if (c.applied) {
+            const fromKb = c.originalSize ? Math.round(c.originalSize / 1024) : null
+            const toKb = c.finalSize ? Math.round(c.finalSize / 1024) : null
+            toast.success(`已压缩：${file.name}${fromKb && toKb ? `（${fromKb}KB → ${toKb}KB）` : ''}`)
+          } else if (c.reason === 'disabled') {
+            // no-op
+          } else if (c.reason === 'larger_after_compress') {
+            toast(`压缩后变大，已保留原图：${file.name}`)
+          } else if (c.reason === 'too_large') {
+            toast(`像素过大，已跳过压缩：${file.name}`)
+          } else if (c.reason === 'sharp_not_available') {
+            toast.error(`压缩未生效（服务端缺少 sharp）：${file.name}`)
+          }
+        }
       }
 
       toast.success(`成功上传 ${filesToUpload.length} 个文件`)
@@ -814,6 +851,58 @@ export default function FilesPage() {
 
         {activeTab === 'user' && (
           <Fragment>
+            <div className="bg-white dark:bg-tech-light rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">图片自动压缩</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    开启后，所有上传到 <code className="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-700">/uploads</code> 的 JPG/PNG 会自动压缩并去掉元数据；压缩后变大则不会替换；超大像素图会跳过压缩。
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-tech-accent focus:ring-tech-accent"
+                      checked={imageCompressEnabled}
+                      onChange={(e) => setImageCompressEnabled(e.target.checked)}
+                    />
+                    启用
+                  </label>
+                  <select
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                    value={imageCompressLevel}
+                    onChange={(e) => setImageCompressLevel(e.target.value as ImageCompressLevel)}
+                    disabled={!imageCompressEnabled}
+                  >
+                    <option value="light">轻量压缩</option>
+                    <option value="medium">中等压缩</option>
+                    <option value="heavy">重度压缩</option>
+                  </select>
+                  <button
+                    type="button"
+                    disabled={imageCompressSaving}
+                    onClick={async () => {
+                      try {
+                        setImageCompressSaving(true)
+                        const res: any = await uploadApi.updatePreferences({
+                          image_compress_enabled: imageCompressEnabled,
+                          image_compress_level: imageCompressLevel
+                        })
+                        if (res?.success) toast.success('保存成功')
+                      } catch (e) {
+                        toast.error('保存失败')
+                      } finally {
+                        setImageCompressSaving(false)
+                      }
+                    }}
+                    className="px-4 py-2 bg-tech-accent text-white rounded-lg hover:bg-tech-secondary transition-colors disabled:opacity-60 text-sm"
+                  >
+                    保存
+                  </button>
+                </div>
+              </div>
+            </div>
             {/* 主要内容区域 - 双面板布局 */}
             <div className="flex gap-6">
               {/* 左侧文件夹导航 */}

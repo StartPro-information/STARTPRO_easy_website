@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import type { Doc, DocNode } from '@/types'
 import DocParentSelector from './DocParentSelector'
 import AssetPickerModal, { type SelectedAsset } from '@/components/AssetPickerModal'
+import { marked } from 'marked'
+import { api } from '@/utils/api'
 
 type DocStatus = 'draft' | 'published'
 
@@ -23,12 +25,40 @@ const slugify = (value: string) =>
     .replace(/--+/g, '-')
     .replace(/^\/+|\/+$/g, '')
 
+const guessContentFormat = (content: unknown): 'html' | 'markdown' => {
+  const text = typeof content === 'string' ? content : ''
+  if (!text.trim()) return 'html'
+  return /<\/?[a-z][\s\S]*>/i.test(text) ? 'html' : 'markdown'
+}
+
+class DocsImageUploadAdapter {
+  private loader: any
+
+  constructor(loader: any) {
+    this.loader = loader
+  }
+
+  async upload() {
+    const file: File = await this.loader.file
+    const res: any = await api.upload('/upload/image', file, undefined, { folder: 'docsPhoto' })
+    if (!res?.success) {
+      throw new Error(res?.message || '图片上传失败')
+    }
+    const url = res?.data?.url
+    if (!url) throw new Error('图片上传失败：缺少 url')
+    return { default: url }
+  }
+
+  abort() {}
+}
+
 const defaultForm: Partial<Doc> = {
   title: '',
   slug: '',
   parent_id: null,
   sort_order: 0,
   status: 'draft',
+  content_format: 'html',
   content: '',
   summary: '',
   cover: ''
@@ -47,11 +77,19 @@ export default function DocForm({
   const [editorError, setEditorError] = useState<string | null>(null)
   const editorHostRef = useRef<HTMLDivElement | null>(null)
   const editorInstanceRef = useRef<any>(null)
+  const markdownSnapshotRef = useRef<string | null>(null)
+  const convertedHtmlSnapshotRef = useRef<string | null>(null)
   const [isAssetPickerOpen, setIsAssetPickerOpen] = useState(false)
   const [assetSource, setAssetSource] = useState<'user' | 'system'>('user')
+  const contentFormat = (form.content_format || 'html') as 'html' | 'markdown'
+  const isHtmlMode = contentFormat === 'html'
 
   useEffect(() => {
-    setForm((prev) => ({ ...prev, ...initialData }))
+    setForm((prev) => {
+      const next = { ...prev, ...initialData }
+      if (!next.content_format) next.content_format = guessContentFormat(next.content)
+      return next
+    })
   }, [initialData])
 
   useEffect(() => {
@@ -103,6 +141,7 @@ export default function DocForm({
 
     const initEditor = async () => {
       if (typeof window === 'undefined') return
+      if (!isHtmlMode) return
       cleanupExisting()
 
       await loadFirstAvailable('css', ['/ck-umd/cke-global.css'], 'data-ckeditor-css')
@@ -135,15 +174,52 @@ export default function DocForm({
           ? baseConfig.toolbar.filter((item: string) => !disallow.has(item))
           : baseConfig.toolbar
 
+      const filteredPlugins = Array.isArray(baseConfig.plugins)
+        ? baseConfig.plugins.filter((plugin: any) => plugin?.pluginName !== 'Markdown')
+        : baseConfig.plugins
+
       editorInstanceRef.current = await ClassicEditor.create(editorHostRef.current, {
         ...baseConfig,
+        plugins: filteredPlugins,
+        image: {
+          ...(baseConfig.image || {}),
+          styles: [
+            ...(Array.isArray(baseConfig.image?.styles) ? baseConfig.image.styles : []),
+            'alignLeft',
+            'alignCenter',
+            'alignRight',
+            'inline',
+            'block',
+            'side'
+          ],
+          toolbar: [
+            'toggleImageCaption',
+            'imageTextAlternative',
+            '|',
+            'imageStyle:alignLeft',
+            'imageStyle:alignCenter',
+            'imageStyle:alignRight',
+            '|',
+            'imageStyle:inline',
+            'imageStyle:block',
+            'imageStyle:side',
+            'linkImage'
+          ]
+        },
         toolbar: filteredToolbar,
         licenseKey: 'GPL',
         placeholder: '请输入正文...'
       })
 
+      try {
+        const fileRepo = editorInstanceRef.current.plugins.get('FileRepository')
+        fileRepo.createUploadAdapter = (loader: any) => new DocsImageUploadAdapter(loader)
+      } catch (e) {
+        console.warn('Failed to attach upload adapter for docs editor', e)
+      }
+
       if (form.content) {
-        editorInstanceRef.current.setData(form.content)
+        editorInstanceRef.current.setData(String(form.content))
       }
       editorInstanceRef.current.model.document.on('change:data', () => {
         const data = editorInstanceRef.current.getData()
@@ -169,8 +245,9 @@ export default function DocForm({
         editorInstanceRef.current.destroy().catch(() => {})
         editorInstanceRef.current = null
       }
+      setEditorLoaded(false)
     }
-  }, [])
+  }, [isHtmlMode])
 
   const parentSlugMap = useMemo(() => {
     const map = new Map<number, string>()
@@ -239,13 +316,49 @@ export default function DocForm({
   }
 
   const insertImage = (src: string) => {
+    const url = normalizeAssetUrl(src)
+    if (!isHtmlMode) {
+      const current = String(form.content || '')
+      const next = current ? `${current}\n\n![](${url})\n` : `![](${url})\n`
+      handleChange('content', next)
+      return
+    }
     if (!editorInstanceRef.current) return
     const editor = editorInstanceRef.current
-    const url = normalizeAssetUrl(src)
     editor.model.change((writer: any) => {
       const imageElement = writer.createElement('imageBlock', { src: url })
       editor.model.insertContent(imageElement, editor.model.document.selection)
     })
+  }
+
+  const handleContentFormatChange = (next: 'html' | 'markdown') => {
+    if (next === contentFormat) return
+
+    if (next === 'html') {
+      const markdown = String(form.content || '')
+      markdownSnapshotRef.current = markdown
+      const converted = String(marked.parse(markdown))
+      convertedHtmlSnapshotRef.current = converted
+      setForm((prev) => ({ ...prev, content_format: 'html', content: converted }))
+      return
+    }
+
+    const snapshot = markdownSnapshotRef.current
+    if (!snapshot) {
+      const ok = window.confirm('当前内容为 HTML，无法自动还原为 Markdown。切换后将显示 HTML 源码，是否继续？')
+      if (!ok) return
+      setForm((prev) => ({ ...prev, content_format: 'markdown' }))
+      return
+    }
+
+    const converted = convertedHtmlSnapshotRef.current
+    const currentHtml = String(form.content || '')
+    if (converted && currentHtml !== converted) {
+      const ok = window.confirm('从 HTML 切回 Markdown 会丢失你在 HTML 模式下的改动，是否继续？')
+      if (!ok) return
+    }
+
+    setForm((prev) => ({ ...prev, content_format: 'markdown', content: snapshot }))
   }
 
   const openAssetPicker = (source: 'user' | 'system' = 'user') => {
@@ -320,10 +433,21 @@ export default function DocForm({
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-theme-text">正文</p>
-            {!editorLoaded && !editorError && <span className="text-xs text-theme-textSecondary">加载编辑器中...</span>}
+            {isHtmlMode && !editorLoaded && !editorError && <span className="text-xs text-theme-textSecondary">加载编辑器中...</span>}
             {editorError && <span className="text-xs text-red-500">{editorError}</span>}
           </div>
           <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-theme-textSecondary">格式</span>
+              <select
+                className="theme-input text-xs py-1 px-2 rounded-md"
+                value={contentFormat}
+                onChange={(e) => handleContentFormatChange(e.target.value as 'html' | 'markdown')}
+              >
+                <option value="html">HTML</option>
+                <option value="markdown">Markdown</option>
+              </select>
+            </div>
             <span
               className="px-3 py-1 text-xs font-semibold rounded-full"
               style={{
@@ -347,7 +471,7 @@ export default function DocForm({
           </div>
         </div>
 
-        {editorError ? (
+        {editorError || !isHtmlMode ? (
           <textarea
             className="w-full theme-input min-h-[260px]"
             value={form.content || ''}

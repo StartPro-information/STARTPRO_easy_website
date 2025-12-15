@@ -204,12 +204,12 @@ export default function Header({
                     <div className="flex items-center">
                       <Link
                         href={item.href}
-                        className={`flex items-center space-x-1 text-gray-300 hover:text-white transition-colors duration-300 ${isActiveLink(item.href) ? 'text-primary font-medium' : ''}`}
+                        className={`flex items-center space-x-1 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors duration-300 ${isActiveLink(item.href) ? 'text-primary font-medium' : ''}`}
                       >
                         <span>{item.label}</span>
                       </Link>
                       <button
-                        className="p-1 text-gray-400 hover:text-white transition-colors duration-300"
+                        className="p-1 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors duration-300"
                         onMouseEnter={() => setActiveDropdown(item.label)}
                         onMouseLeave={() => setActiveDropdown(null)}
                       >
@@ -233,7 +233,7 @@ export default function Header({
                               <Link
                                 key={child.label}
                                 href={child.href}
-                                className="block px-4 py-2 text-sm text-gray-300 hover:bg-primary/10 hover:text-white transition-colors duration-200 rounded-md"
+                                className="block px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-primary/10 hover:text-[var(--color-primary)] transition-colors duration-200 rounded-md"
                                 {...(child.external && { target: '_blank', rel: 'noopener noreferrer' })}
                               >
                                 {child.label}
@@ -247,7 +247,7 @@ export default function Header({
                 ) : (
                   <Link
                     href={item.href}
-                    className={`text-gray-300 hover:text-white transition-colors duration-300 ${isActiveLink(item.href) ? 'text-primary font-medium' : ''}`}
+                    className={`text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors duration-300 ${isActiveLink(item.href) ? 'text-primary font-medium' : ''}`}
                     {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                   >
                     {item.label}
@@ -260,7 +260,7 @@ export default function Header({
           {/* Mobile menu button */}
           <button
             onClick={toggleMenu}
-            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-white transition-colors duration-200"
+            className="lg:hidden p-2 rounded-md text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors duration-200"
             aria-label="切换菜单"
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -284,21 +284,21 @@ export default function Header({
                   {item.children && item.children.length > 0 ? (
                     <div>
                       <div className="flex items-center">
-                        <Link
-                          href={item.href}
-                          onClick={() => setIsOpen(false)}
-                          className={`flex-1 px-3 py-2 text-left text-base font-medium rounded-md transition-colors duration-200 ${isActiveLink(item.href) ? 'text-primary bg-primary/10' : 'text-gray-300 hover:text-white'}`}
-                        >
-                          {item.label}
-                        </Link>
-                        <button
-                          onClick={() => toggleDropdown(item.label)}
-                          className="p-2 text-gray-400 hover:text-white"
-                        >
-                          <ChevronDown
-                            className={`w-5 h-5 transition-transform duration-200 ${activeDropdown === item.label ? 'rotate-180' : ''}`}
-                          />
-                        </button>
+                          <Link
+                            href={item.href}
+                            onClick={() => setIsOpen(false)}
+                            className={`flex-1 px-3 py-2 text-left text-base font-medium rounded-md transition-colors duration-200 ${isActiveLink(item.href) ? 'text-primary bg-primary/10' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]'}`}
+                          >
+                            {item.label}
+                          </Link>
+                          <button
+                            onClick={() => toggleDropdown(item.label)}
+                            className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]"
+                          >
+                            <ChevronDown
+                              className={`w-5 h-5 transition-transform duration-200 ${activeDropdown === item.label ? 'rotate-180' : ''}`}
+                            />
+                          </button>
                       </div>
 
                       <AnimatePresence>
@@ -315,7 +315,7 @@ export default function Header({
                                 key={child.label}
                                 href={child.href}
                                 onClick={() => setIsOpen(false)}
-                                className={`block px-3 py-2 text-sm rounded-md transition-colors duration-200 ${isActiveLink(child.href) ? 'text-primary bg-primary/10' : 'text-gray-300 hover:text-white'}`}
+                                className={`block px-3 py-2 text-sm rounded-md transition-colors duration-200 ${isActiveLink(child.href) ? 'text-primary bg-primary/10' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]'}`}
                                 {...(child.external && { target: '_blank', rel: 'noopener noreferrer' })}
                               >
                                 {child.label}
@@ -329,7 +329,7 @@ export default function Header({
                     <Link
                       href={item.href}
                       onClick={() => setIsOpen(false)}
-                      className={`block px-3 py-2 text-base font-medium rounded-md transition-colors duration-200 ${isActiveLink(item.href) ? 'text-primary bg-primary/10' : 'text-gray-300 hover:text-white'}`}
+                      className={`block px-3 py-2 text-base font-medium rounded-md transition-colors duration-200 ${isActiveLink(item.href) ? 'text-primary bg-primary/10' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]'}`}
                       {...(item.external && { target: '_blank', rel: 'noopener noreferrer' })}
                     >
                       {item.label}

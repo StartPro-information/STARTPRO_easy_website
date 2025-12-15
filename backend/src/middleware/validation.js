@@ -269,6 +269,7 @@ const docSchemas = {
     title: Joi.string().min(1).max(255).required(),
     slug: Joi.string().pattern(slugPathPattern).min(1).max(255).required(),
     type: Joi.string().valid('doc', 'folder').default('doc'),
+    content_format: Joi.string().valid('html', 'markdown').default('markdown'),
     parent_id: Joi.alternatives().try(
       Joi.number().integer().positive(),
       Joi.valid(null, '')
@@ -286,6 +287,7 @@ const docSchemas = {
     title: Joi.string().min(1).max(255).optional(),
     slug: Joi.string().pattern(slugPathPattern).min(1).max(255).optional(),
     type: Joi.string().valid('doc', 'folder').optional(),
+    content_format: Joi.string().valid('html', 'markdown').optional(),
     parent_id: Joi.alternatives().try(
       Joi.number().integer().positive(),
       Joi.valid(null, '')

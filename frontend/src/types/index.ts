@@ -372,6 +372,7 @@ export interface Doc {
   sort_order: number
   status: 'draft' | 'published'
   type?: 'doc' | 'folder'
+  content_format?: 'html' | 'markdown'
   content: string
   summary?: string | null
   cover?: string | null
@@ -379,4 +380,3 @@ export interface Doc {
   created_at?: string
   updated_at?: string
 }
-

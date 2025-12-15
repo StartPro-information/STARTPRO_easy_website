@@ -194,6 +194,10 @@ export const uploadApi = {
 
   getFolders: () => api.get('/upload/folders'),
 
+  getPreferences: () => api.get('/upload/preferences'),
+  updatePreferences: (data: { image_compress_enabled: boolean; image_compress_level: 'light' | 'medium' | 'heavy' }) =>
+    api.put('/upload/preferences', data),
+
   deleteFile: (fileId: string, folder?: string) =>
     api.delete(`/upload/file/${fileId}`, {
       params: folder ? { folder } : undefined

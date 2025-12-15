@@ -532,6 +532,7 @@ CREATE TABLE IF NOT EXISTS `docs` (
   `sort_order` int DEFAULT 0,
   `status` enum('draft','published') NOT NULL DEFAULT 'draft',
   `type` enum('doc','folder') NOT NULL DEFAULT 'doc',
+  `content_format` enum('html','markdown') NOT NULL DEFAULT 'markdown',
   `content` longtext NOT NULL,
   `summary` text,
   `cover` varchar(255) DEFAULT NULL,
@@ -548,3 +549,16 @@ CREATE TABLE IF NOT EXISTS `docs` (
   CONSTRAINT `fk_docs_parent` FOREIGN KEY (`parent_id`) REFERENCES `docs`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- 上传偏好配置（用于素材管理的图片自动压缩开关）
+CREATE TABLE IF NOT EXISTS `upload_preferences` (
+  `id` tinyint unsigned NOT NULL DEFAULT 1,
+  `image_compress_enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `image_compress_level` enum('light','medium','heavy') NOT NULL DEFAULT 'medium',
+  `updated_by` bigint unsigned DEFAULT NULL,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `upload_preferences` (`id`, `image_compress_enabled`, `image_compress_level`, `updated_by`)
+VALUES (1, 0, 'medium', NULL)
+ON DUPLICATE KEY UPDATE `id` = `id`;

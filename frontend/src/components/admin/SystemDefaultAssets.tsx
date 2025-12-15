@@ -64,7 +64,7 @@ export default function SystemDefaultAssets({ onFolderChange }: SystemDefaultAss
   const [filesPerPage, setFilesPerPage] = useState(40)
   const pageSizeOptions: Array<40 | 80 | 160> = [40, 80, 160]
   const iconPreviewThemes = {
-    dark: { label: '默认', color: '#f9fafb' },
+    dark: { label: '默认', color: 'var(--color-text-primary)' },
     brand: { label: '品牌', color: '#0ea5e9' }
   } as const
   type IconPreviewKey = keyof typeof iconPreviewThemes

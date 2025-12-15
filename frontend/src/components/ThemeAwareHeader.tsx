@@ -300,9 +300,9 @@ export default function ThemeAwareHeader({
                           backgroundColor: 'transparent'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.color = headerStyles.hoverColor
+                          e.currentTarget.style.color = 'var(--color-accent)'
                           // 添加背景色效果，移除阴影
-                          e.currentTarget.style.backgroundColor = `rgba(${hexToRgb(headerStyles.hoverColor).join(', ')}, 0.15)`
+                          e.currentTarget.style.backgroundColor = 'rgba(var(--color-accent-rgb), 0.15)'
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.color = isActiveLink(item.href) ? headerStyles.activeColor : headerStyles.textColor
@@ -342,8 +342,8 @@ export default function ThemeAwareHeader({
                                   borderColor: `rgba(${hexToRgb(headerStyles.textColor).join(', ')}, 0.1)`
                                 }}
                                 onMouseEnter={(e) => {
-                                  e.currentTarget.style.color = headerStyles.hoverColor
-                                  e.currentTarget.style.backgroundColor = `rgba(${hexToRgb(headerStyles.hoverColor).join(', ')}, 0.1)`
+                                  e.currentTarget.style.color = 'var(--color-accent)'
+                                  e.currentTarget.style.backgroundColor = 'rgba(var(--color-accent-rgb), 0.1)'
                                 }}
                                 onMouseLeave={(e) => {
                                   e.currentTarget.style.color = isActiveLink(child.href) ? headerStyles.activeColor : headerStyles.textColor
@@ -367,9 +367,9 @@ export default function ThemeAwareHeader({
                       backgroundColor: 'transparent'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.color = headerStyles.hoverColor
+                      e.currentTarget.style.color = 'var(--color-accent)'
                       // 只添加背景色效果，移除阴影和位移
-                      e.currentTarget.style.backgroundColor = `rgba(${hexToRgb(headerStyles.hoverColor).join(', ')}, 0.15)`
+                      e.currentTarget.style.backgroundColor = 'rgba(var(--color-accent-rgb), 0.15)'
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.color = isActiveLink(item.href) ? headerStyles.activeColor : headerStyles.textColor
@@ -391,7 +391,7 @@ export default function ThemeAwareHeader({
             style={{ color: headerStyles.textColor }}
             aria-label="切换菜单"
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = headerStyles.hoverColor
+              e.currentTarget.style.color = 'var(--color-accent)'
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = headerStyles.textColor
@@ -431,8 +431,8 @@ export default function ThemeAwareHeader({
                             backgroundColor: isActiveLink(item.href) ? `rgba(${hexToRgb(headerStyles.activeColor).join(', ')}, 0.1)` : 'transparent'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.color = headerStyles.hoverColor
-                            e.currentTarget.style.backgroundColor = `rgba(${hexToRgb(headerStyles.hoverColor).join(', ')}, 0.1)`
+                            e.currentTarget.style.color = 'var(--color-accent)'
+                            e.currentTarget.style.backgroundColor = 'rgba(var(--color-accent-rgb), 0.1)'
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.color = isActiveLink(item.href) ? headerStyles.activeColor : headerStyles.textColor
@@ -474,9 +474,9 @@ export default function ThemeAwareHeader({
                                     borderLeftColor: 'transparent'
                                   }}
                                   onMouseEnter={(e) => {
-                                    e.currentTarget.style.color = headerStyles.hoverColor
-                                    e.currentTarget.style.backgroundColor = `rgba(${hexToRgb(headerStyles.hoverColor).join(', ')}, 0.1)`
-                                    e.currentTarget.style.borderLeftColor = headerStyles.hoverColor
+                                    e.currentTarget.style.color = 'var(--color-accent)'
+                                    e.currentTarget.style.backgroundColor = 'rgba(var(--color-accent-rgb), 0.1)'
+                                    e.currentTarget.style.borderLeftColor = 'var(--color-accent)'
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.style.color = isActiveLink(child.href) ? headerStyles.activeColor : headerStyles.textColor
@@ -505,8 +505,8 @@ export default function ThemeAwareHeader({
                         backgroundColor: isActiveLink(item.href) ? `rgba(${hexToRgb(headerStyles.activeColor).join(', ')}, 0.1)` : 'transparent'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.color = headerStyles.hoverColor
-                        e.currentTarget.style.backgroundColor = `rgba(${hexToRgb(headerStyles.hoverColor).join(', ')}, 0.1)`
+                        e.currentTarget.style.color = 'var(--color-accent)'
+                        e.currentTarget.style.backgroundColor = 'rgba(var(--color-accent-rgb), 0.1)'
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.color = isActiveLink(item.href) ? headerStyles.activeColor : headerStyles.textColor

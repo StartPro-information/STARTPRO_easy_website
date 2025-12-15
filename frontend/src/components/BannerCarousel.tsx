@@ -16,6 +16,10 @@ interface BannerCarouselProps {
   showIndicators?: boolean
   showArrows?: boolean
   className?: string
+  titleColorMode?: 'default' | 'custom'
+  customTitleColor?: string
+  subtitleColorMode?: 'default' | 'custom'
+  customSubtitleColor?: string
 }
 
 const BannerCarousel: React.FC<BannerCarouselProps> = ({
@@ -24,7 +28,11 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({
   interval = 5000,
   showIndicators = true,
   showArrows = true,
-  className = ''
+  className = '',
+  titleColorMode = 'default',
+  customTitleColor = '',
+  subtitleColorMode = 'default',
+  customSubtitleColor = ''
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -151,12 +159,26 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({
               <div className={`absolute max-w-md md:max-w-lg px-4 md:px-8 z-10 ${getOverlayPositionClass(slide.overlayPosition)}`}>
                 <div className="bg-black bg-opacity-30 backdrop-blur-sm rounded-xl p-6 md:p-8">
                   {slide.title && (
-                    <h2 className="text-2xl md:text-4xl font-bold text-white mb-3 md:mb-4 leading-tight">
+                    <h2
+                      className="text-2xl md:text-4xl font-bold text-text-primary mb-3 md:mb-4 leading-tight"
+                      style={
+                        titleColorMode === 'custom' && customTitleColor
+                          ? { color: customTitleColor }
+                          : undefined
+                      }
+                    >
                       {slide.title}
                     </h2>
                   )}
                   {slide.description && (
-                    <p className="text-base md:text-lg text-white mb-4 md:mb-6 opacity-90">
+                    <p
+                      className="text-base md:text-lg text-text-secondary mb-4 md:mb-6 opacity-90"
+                      style={
+                        subtitleColorMode === 'custom' && customSubtitleColor
+                          ? { color: customSubtitleColor }
+                          : undefined
+                      }
+                    >
                       {slide.description}
                     </p>
                   )}

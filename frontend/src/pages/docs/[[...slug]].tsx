@@ -62,7 +62,13 @@ export default function DocsPage({ doc, tree, slugPath, settings }: DocsPageProp
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
   const [headings, setHeadings] = useState<{ id: string; text: string; level: number }[]>([])
   const [activeHeadingId, setActiveHeadingId] = useState<string>('')
-  const rawHtml = useMemo(() => marked.parse(doc.content || ''), [doc.content])
+  const rawHtml = useMemo(() => {
+    const content = doc.content || ''
+    const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(content)
+    const format = doc.content_format || (looksLikeHtml ? 'html' : 'markdown')
+    if (format === 'markdown') return marked.parse(content)
+    return content
+  }, [doc.content, doc.content_format])
   const safeHtml = useMemo(() => DOMPurify.sanitize(rawHtml), [rawHtml])
   const siteName = settings.site_name || doc.title
   const logoName = `${siteName || '文档中心'} | 文档中心`

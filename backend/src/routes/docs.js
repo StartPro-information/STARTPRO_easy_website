@@ -106,7 +106,7 @@ router.get('/id/:id', authenticateToken, requireEditor, validateId, async (req, 
   try {
     const { id } = req.params
     const [docs] = await db.execute(
-      `SELECT id, title, slug, parent_id, sort_order, status, type, content, summary, cover, published_at, created_at, updated_at
+      `SELECT id, title, slug, parent_id, sort_order, status, type, content_format, content, summary, cover, published_at, created_at, updated_at
        FROM docs
        WHERE id = ?
        LIMIT 1`,
@@ -133,7 +133,7 @@ router.get(
     try {
       const slugPath = normalizeSlug(req.params.slugPath)
       const [docs] = await db.execute(
-        `SELECT id, title, slug, parent_id, sort_order, status, type, content, summary, cover, published_at, created_at, updated_at
+        `SELECT id, title, slug, parent_id, sort_order, status, type, content_format, content, summary, cover, published_at, created_at, updated_at
          FROM docs
          WHERE slug = ?
          LIMIT 1`,
@@ -188,6 +188,7 @@ router.post(
       payload.sort_order = Number.isFinite(Number(payload.sort_order)) ? Number(payload.sort_order) : 0
       payload.status = payload.status || 'draft'
       payload.type = payload.type || 'doc'
+      payload.content_format = payload.content_format || 'markdown'
 
       if (!payload.slug) return res.status(400).json({ success: false, message: 'slug 不能为空' })
 
@@ -209,6 +210,7 @@ router.post(
       const publishedAt = payload.status === 'published' ? new Date() : null
 
       if (payload.type === 'folder') {
+        payload.content_format = 'html'
         payload.content = ''
         payload.summary = null
         payload.cover = null
@@ -216,9 +218,9 @@ router.post(
 
       const [result] = await db.execute(
         `INSERT INTO docs (
-            title, slug, parent_id, sort_order, status, type, content, summary, cover,
+            title, slug, parent_id, sort_order, status, type, content_format, content, summary, cover,
             published_at, created_by, updated_by
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           payload.title,
           payload.slug,
@@ -226,6 +228,7 @@ router.post(
           payload.sort_order || 0,
           payload.status,
           payload.type,
+          payload.content_format,
           payload.content,
           payload.summary || null,
           payload.cover || null,
@@ -291,7 +294,7 @@ router.put(
         return res.status(400).json({ success: false, message: '文件夹不允许设置父级' })
       }
 
-      const allowed = ['title', 'slug', 'parent_id', 'sort_order', 'status', 'type', 'content', 'summary', 'cover']
+      const allowed = ['title', 'slug', 'parent_id', 'sort_order', 'status', 'type', 'content_format', 'content', 'summary', 'cover']
       allowed.forEach((field) => {
         if (payload[field] !== undefined) {
           let value = payload[field]
@@ -321,6 +324,7 @@ router.put(
             values[idx] = val
           }
         }
+        pushOrSet('content_format', 'html')
         pushOrSet('content', '')
         pushOrSet('summary', null)
         pushOrSet('cover', null)

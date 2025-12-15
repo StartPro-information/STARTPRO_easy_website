@@ -97,15 +97,26 @@ export const renderContentSection = (component: any): string => {
 
 export const renderBannerCarousel = (component: any): string => {
   const { props = {} } = component
-  const { banners = [], slides = [] } = props
+  const {
+    banners = [],
+    slides = [],
+    titleColorMode = 'default',
+    customTitleColor = '',
+    subtitleColorMode = 'default',
+    customSubtitleColor = ''
+  } = props
   const list = Array.isArray(banners) && banners.length > 0 ? banners : slides
+  const titleStyle =
+    titleColorMode === 'custom' && customTitleColor ? ` style="color:${escapeHtml(customTitleColor)}"` : ''
+  const subtitleStyle =
+    subtitleColorMode === 'custom' && customSubtitleColor ? ` style="color:${escapeHtml(customSubtitleColor)}"` : ''
   const output = (list || [])
     .map((banner: any) => {
       const image = banner.image || banner.src || ''
       return `<div class="banner-slide">
       ${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(banner.alt || '')}" />` : ''}
-      ${banner.title ? `<h3>${escapeHtml(banner.title)}</h3>` : ''}
-      ${banner.description ? `<p>${escapeHtml(banner.description)}</p>` : ''}
+      ${banner.title ? `<h3${titleStyle}>${escapeHtml(banner.title)}</h3>` : ''}
+      ${banner.description ? `<p${subtitleStyle}>${escapeHtml(banner.description)}</p>` : ''}
     </div>`
     })
     .join('')
