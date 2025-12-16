@@ -4,7 +4,6 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { motion, AnimatePresence } from 'framer-motion'
-import Cookies from 'js-cookie'
 import toast from 'react-hot-toast'
 import {
   LayoutDashboard,
@@ -21,7 +20,7 @@ import {
   Inbox,
   Key
 } from 'lucide-react'
-import { authApi } from '@/utils/api'
+import { authApi, clearAccessToken, getAccessToken, setAccessToken } from '@/utils/api'
 import { getThemeById, defaultTheme, resolveBackgroundEffect, type ThemeBackgroundChoice } from '@/styles/themes'
 import BackgroundRenderer from '@/components/theme-backgrounds/BackgroundRenderer'
 import { useSettings } from '@/contexts/SettingsContext'
@@ -117,18 +116,24 @@ export default function AdminLayout({
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = Cookies.get('auth-token')
-      
-      if (!token) {
-        router.replace('/admin/login')
-        return
-      }
-
       try {
+        const token = getAccessToken()
+        if (token) {
+          await refreshUserProfile()
+          return
+        }
+
+        const refreshed = await authApi.refresh()
+        const newToken = (refreshed as any)?.data?.token
+        if (!newToken) {
+          router.replace('/admin/login')
+          return
+        }
+        setAccessToken(newToken)
         await refreshUserProfile()
       } catch (error: any) {
         console.error('AdminLayout: 认证失败:', error)
-        Cookies.remove('auth-token')
+        clearAccessToken()
         router.replace('/admin/login')
         toast.error('登录已过期，请重新登录')
       } finally {
@@ -148,7 +153,7 @@ export default function AdminLayout({
     } catch (error) {
       console.error('登出错误:', error)
     } finally {
-      Cookies.remove('auth-token')
+      clearAccessToken()
       router.replace('/admin/login')
       toast.success('已安全退出登录')
     }
@@ -391,7 +396,6 @@ export default function AdminLayout({
     </>
   )
 }
-
 
 
 

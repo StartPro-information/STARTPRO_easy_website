@@ -1,7 +1,20 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import Cookies from 'js-cookie'
 import toast from 'react-hot-toast'
 import { ApiResponse, PaginatedResponse, PageContent, Doc } from '@/types'
+
+let accessToken: string | null = null
+
+export const setAccessToken = (token: string | null) => {
+  accessToken = token
+}
+
+export const getAccessToken = () => accessToken
+
+export const clearAccessToken = () => {
+  accessToken = null
+}
+
+let refreshPromise: Promise<string> | null = null
 
 class ApiClient {
   private client: AxiosInstance
@@ -23,7 +36,7 @@ class ApiClient {
     // 请求拦截器
     this.client.interceptors.request.use(
       (config) => {
-        const token = Cookies.get('auth-token')
+        const token = getAccessToken()
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
@@ -34,25 +47,50 @@ class ApiClient {
       }
     )
 
-    // 响应拦截器
+    // 响应拦截器（401 时尝试 refresh）
     this.client.interceptors.response.use(
       (response: AxiosResponse<ApiResponse>) => {
         return response
       },
-      (error) => {
-        if (error.response?.status === 401) {
-          Cookies.remove('auth-token')
-          if (typeof window !== 'undefined') {
+      async (error) => {
+        const status = error.response?.status
+        const originalRequest = error.config as (AxiosRequestConfig & { _retry?: boolean; url?: string })
+        const url = typeof originalRequest?.url === 'string' ? originalRequest.url : ''
+        const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/refresh')
+        const suppressAuthToasts = isAuthEndpoint && status === 401
+
+        if (status === 401 && typeof window !== 'undefined' && !isAuthEndpoint && !originalRequest._retry) {
+          originalRequest._retry = true
+          try {
+            if (!refreshPromise) {
+              refreshPromise = this.client
+                .post('/auth/refresh')
+                .then((r: AxiosResponse<ApiResponse<{ token: string }>>) => {
+                  const token = (r.data as any)?.data?.token
+                  if (!token) throw new Error('Missing refreshed token')
+                  setAccessToken(token)
+                  return token
+                })
+                .finally(() => {
+                  refreshPromise = null
+                })
+            }
+
+            const newToken = await refreshPromise
+            originalRequest.headers = {
+              ...(originalRequest.headers || {}),
+              Authorization: `Bearer ${newToken}`
+            }
+            return this.client(originalRequest)
+          } catch {
+            clearAccessToken()
             window.location.href = '/admin/login'
+            return Promise.reject(error)
           }
         }
-        
+
         const message = error.response?.data?.message || '请求失败，请稍后重试'
-        // 只在浏览器环境中显示toast
-        if (typeof window !== 'undefined') {
-          toast.error(message)
-        }
-        
+        if (typeof window !== 'undefined' && !suppressAuthToasts) toast.error(message)
         return Promise.reject(error)
       }
     )
@@ -113,6 +151,8 @@ export const authApi = {
     api.post('/auth/login', credentials),
 
   logout: () => api.post('/auth/logout'),
+
+  refresh: () => api.post('/auth/refresh'),
 
   getProfile: () => api.get('/auth/profile'),
 

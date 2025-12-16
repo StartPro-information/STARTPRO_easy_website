@@ -5,8 +5,7 @@ import { Eye, EyeOff, Lock, User, LogIn } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import Cookies from 'js-cookie'
-import { authApi } from '@/utils/api'
+import { authApi, setAccessToken, clearAccessToken } from '@/utils/api'
 import type { LoginForm } from '@/types'
 
 export default function AdminLogin() {
@@ -23,24 +22,17 @@ export default function AdminLogin() {
   // 检查是否已登录
   useEffect(() => {
     const checkExistingAuth = async () => {
-      const token = Cookies.get('auth-token')
-      console.log('登录页: 检查现有token:', token)
-      
-      if (token) {
-        try {
-          console.log('登录页: 验证token有效性')
-          const response = await authApi.getProfile()
-          if (response.success) {
-            console.log('登录页: token有效，重定向到dashboard')
-            router.push('/admin/dashboard')
-          } else {
-            console.log('登录页: token无效，清除cookie')
-            Cookies.remove('auth-token')
-          }
-        } catch (error) {
-          console.log('登录页: token验证失败，清除cookie')
-          Cookies.remove('auth-token')
+      try {
+        const refreshed = await authApi.refresh()
+        const token = (refreshed as any)?.data?.token
+        if (!token) return
+        setAccessToken(token)
+        const profile = await authApi.getProfile()
+        if (profile.success) {
+          router.push('/admin/dashboard')
         }
+      } catch {
+        clearAccessToken()
       }
     }
     
@@ -57,21 +49,11 @@ export default function AdminLogin() {
       console.log('登录响应:', response)
       
       if (response.success) {
-        // 保存token
-        console.log('设置cookie, token:', response.data.token)
-        Cookies.set('auth-token', response.data.token, {
-          // 不设置 expires => 会话 Cookie，关闭浏览器后失效
-          secure: false, // 开发环境中设置为false
-          sameSite: 'lax'
-        })
-        
-        // 验证cookie是否正确设置
-        const savedToken = Cookies.get('auth-token')
-        console.log('验证保存的token:', savedToken)
+        setAccessToken(response.data.token)
         
         toast.success('登录成功！')
         
-        // 添加小延迟确保 cookie 正确设置
+        // 添加小延迟确保状态更新
         setTimeout(() => {
           console.log('重定向到 dashboard')
           router.push('/admin/dashboard')
