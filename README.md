@@ -87,6 +87,7 @@ unzip STARTPRO_easy_website-main.zip
    cd ..
    vim .env
    ```
+注意：下面还有一个 "JWT_SECRET=" 的值，请务必填一串随机字符，太简单则可能被猜到从而造成安全问题
 
 3) 初始化数据库  
    导入 `init.sql`，确保 MySQL 账户有建表权限。
