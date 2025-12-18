@@ -1021,8 +1021,10 @@ export const applyTheme = (theme: ColorTheme, overrides?: ThemeOverrides) => {
   root.style.setProperty('--semantic-panel-border', resolvedTheme.semantic.panelBorder)
   root.style.setProperty('--semantic-hero-bg', resolvedTheme.semantic.heroBg)
   root.style.setProperty('--semantic-hero-accent', resolvedTheme.semantic.heroAccent)
+  root.style.setProperty('--semantic-hero-accent-contrast', getContrastColor(resolvedTheme.semantic.heroAccent))
   root.style.setProperty('--semantic-cta-primary-bg', resolvedTheme.semantic.ctaPrimaryBg)
   root.style.setProperty('--semantic-cta-primary-text', resolvedTheme.semantic.ctaPrimaryText)
+  root.style.setProperty('--semantic-cta-primary-contrast', getContrastColor(resolvedTheme.semantic.ctaPrimaryBg))
   root.style.setProperty('--semantic-cta-secondary-border', resolvedTheme.semantic.ctaSecondaryBorder)
   root.style.setProperty('--semantic-tag-bg', resolvedTheme.semantic.tagBg)
   root.style.setProperty('--semantic-tag-text', resolvedTheme.semantic.tagText)
@@ -1119,7 +1121,6 @@ export const getThemeStyles = (theme: ColorTheme) => ({
   intensity: theme.intensity,
   backgroundEffect: theme.background
 })
-
 
 
 

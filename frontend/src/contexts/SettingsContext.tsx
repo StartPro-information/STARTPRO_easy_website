@@ -56,21 +56,21 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
         setSettings(settingsWithDefaults)
       } else {
         const defaultSettings: Settings = {
-          site_name: '??????',
-          company_name: '????',
-          site_description: '???????????????????',
+          site_name: '',
+          company_name: '',
+          site_description: '',
           site_keywords: '',
           site_font: 'inter',
           site_font_custom_name: '',
           site_font_url: '',
           site_statement: '',
           icp_link: '',
-          site_logo: '/logo.png',
+          site_logo: '',
           site_favicon: '',
           contact_email: 'contact@example.com',
           contact_phone: '400-123-4567',
-          address: '??????????',
-          icp_number: '?ICP?xxxxxxxx?',
+          address: '',
+          icp_number: '',
           analytics_code: '',
           site_theme: 'neo-futuristic',
           allow_search_index: true,
@@ -81,14 +81,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
             qq: '',
             email: ''
           },
-          quick_links: [
-            { label: '????', href: '/about' },
-            { label: '????', href: '/services' },
-            { label: '????', href: '/solutions' },
-            { label: '????', href: '/contact' },
-            { label: '????', href: '/privacy' },
-            { label: '????', href: '/terms' }
-          ],
+          quick_links: [],
           footer_layout: getDefaultFooterLayout(),
           footer_social_links: getDefaultFooterSocialLinks(),
           theme_background: 'theme-default'
@@ -98,21 +91,21 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     } catch (error) {
       console.error('获取设置失败:', error)
       const fallbackSettings: Settings = {
-        site_name: '??????',
-        company_name: '????',
-          site_description: '???????????????????',
+        site_name: '',
+        company_name: '',
+        site_description: '',
         site_keywords: '',
         site_font: 'inter',
         site_font_custom_name: '',
         site_font_url: '',
         site_statement: '',
         icp_link: '',
-        site_logo: '/logo.png',
+        site_logo: '',
         site_favicon: '',
         contact_email: 'contact@example.com',
         contact_phone: '400-123-4567',
-        address: '??????????',
-        icp_number: '?ICP?xxxxxxxx?',
+        address: '',
+        icp_number: '',
         analytics_code: '',
         site_theme: 'neo-futuristic',
         allow_search_index: true,
@@ -123,14 +116,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
           qq: '',
           email: ''
         },
-        quick_links: [
-          { label: '????', href: '/about' },
-          { label: '????', href: '/services' },
-          { label: '????', href: '/solutions' },
-          { label: '????', href: '/contact' },
-          { label: '????', href: '/privacy' },
-          { label: '????', href: '/terms' }
-        ],
+        quick_links: [],
         footer_layout: getDefaultFooterLayout(),
         footer_social_links: getDefaultFooterSocialLinks(),
         theme_background: 'theme-default'

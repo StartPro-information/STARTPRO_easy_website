@@ -7,6 +7,9 @@ import { useSettings } from '@/contexts/SettingsContext'
 
 import BackgroundRenderer from '@/components/theme-backgrounds/BackgroundRenderer'
 import { defaultTheme, getThemeById, resolveBackgroundEffect, type ThemeBackgroundChoice } from '@/styles/themes'
+import { navigationApi } from '@/utils/api'
+import type { NavigationItem } from '@/types'
+import type { NavItem } from '@/types/navigation'
 
 import type { Settings } from '@/types';
 
@@ -39,6 +42,44 @@ export default function Layout({
 }: LayoutProps) {
   const { settings: contextSettings } = useSettings()
   const settings = settingsProp || contextSettings
+  const [navigationItems, setNavigationItems] = React.useState<NavItem[]>([])
+  const providedNavigation = (headerProps as any)?.navigation
+
+  React.useEffect(() => {
+    if (providedNavigation) return
+
+    let mounted = true
+    const fetchNavigation = async () => {
+      try {
+        const navResponse = await navigationApi.getAll()
+        if (!mounted) return
+
+        if (navResponse.success && Array.isArray(navResponse.data) && navResponse.data.length) {
+          const mapped: NavItem[] = (navResponse.data as NavigationItem[]).map((item) => ({
+            label: item.name,
+            href: item.url,
+            external: item.target === '_blank',
+            children: item.children?.map((child) => ({
+              label: child.name,
+              href: child.url,
+              external: child.target === '_blank'
+            }))
+          }))
+          setNavigationItems(mapped)
+          return
+        }
+
+        setNavigationItems([])
+      } catch {
+        if (mounted) setNavigationItems([])
+      }
+    }
+
+    fetchNavigation()
+    return () => {
+      mounted = false
+    }
+  }, [providedNavigation])
 
   const themeId = settings?.site_theme || defaultTheme.id
   const activeTheme = useMemo(() => getThemeById(themeId), [themeId])
@@ -49,16 +90,16 @@ export default function Layout({
   )
   const isStarfield = resolvedBackground?.type === 'starfield'
 
-  const siteName = settings?.site_name || '信息技术有限公司出品'
+  const siteName = settings?.site_name || ''
   const siteDescription = description || settings?.site_description || ''
   const resolvedKeywords =
     keywords ??
     (settings?.site_keywords ??
       settings?.site_description ??
       '信息技术服务,官网,公司')
-  const companyName = settings?.company_name || '信息技术有限公司出品'
+  const companyName = settings?.company_name || ''
   const favicon = settings?.site_favicon || ''
-  const logo = settings?.site_logo || '/logo.png'
+  const logo = settings?.site_logo || ''
   const allowSearchIndex = settings?.allow_search_index !== false
   const shouldNoIndex = noindex || !allowSearchIndex
   const verificationTags = settings?.verification_tags || {}
@@ -66,8 +107,9 @@ export default function Layout({
   const pageTitle = title ? `${title} - ${siteName}` : siteName
 
   const finalHeaderProps = {
-    logo,
-    siteName: companyName,
+    ...(logo ? { logo } : {}),
+    ...(companyName ? { siteName: companyName } : {}),
+    navigation: (headerProps as any)?.navigation ?? navigationItems,
     ...headerProps
   }
 

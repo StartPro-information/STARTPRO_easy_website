@@ -33,7 +33,7 @@ export const useMetaInfo = () => {
       )
     } else if (!isLoading) {
       console.log('设置为空，使用默认值')
-      updateFavicon('/favicon.ico')
+      // 未设置 favicon 时不强行指定，由浏览器自行处理
       updateTitle('科技公司官网')
     }
   }, [settings, isLoading])

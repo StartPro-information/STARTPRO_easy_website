@@ -57,7 +57,7 @@ export default function NotificationSettingsPage() {
                   disabled={isDisabled}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-semantic-hero-accent text-white shadow-semantic'
+                      ? 'bg-[var(--semantic-hero-accent)] text-[color:var(--semantic-hero-accent-contrast)] shadow-semantic'
                       : 'bg-theme-surfaceAlt text-theme-textSecondary hover:text-theme-text hover:bg-theme-surface'
                   } ${isDisabled ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >

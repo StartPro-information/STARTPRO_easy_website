@@ -493,7 +493,7 @@ export default function DocForm({
             `}</style>
             <div
               ref={editorHostRef}
-              className="min-h-[360px] bg-theme-surfaceAlt rounded-md p-2 min-w-0"
+              className="docs-ckeditor min-h-[360px] bg-theme-surfaceAlt rounded-md p-2 min-w-0"
             />
           </>
         )}
@@ -512,7 +512,7 @@ export default function DocForm({
           type="button"
           onClick={() => handleSubmit('published')}
           disabled={submitting}
-          className="px-4 py-2 rounded-md bg-semantic-hero-accent text-white shadow-sm hover:opacity-90 transition-colors disabled:opacity-60"
+          className="px-4 py-2 rounded-md bg-[var(--semantic-cta-primary-bg)] text-[color:var(--semantic-cta-primary-contrast)] shadow-sm hover:opacity-90 transition-colors disabled:opacity-60"
         >
           发布 / 更新
         </button>

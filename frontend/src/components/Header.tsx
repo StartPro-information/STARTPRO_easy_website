@@ -133,8 +133,8 @@ export default function Header({
 
   // 使用动态数据或传入的props，加载时使用默认导航
   const currentNavigation = navigation || dynamicNavigation
-  const currentSiteName = siteName || dynamicSettings.company_name || dynamicSettings.site_name || '科技公司'
-  const currentLogo = logo || dynamicSettings.site_logo || '/logo.png'
+  const currentSiteName = siteName || dynamicSettings.company_name || dynamicSettings.site_name || ''
+  const currentLogo = logo || dynamicSettings.site_logo || ''
   useEffect(() => {
     if (!isClient) return;
     
@@ -175,24 +175,24 @@ export default function Header({
         <div className="flex items-center justify-between" style={{ height: '90px' }}>
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="relative">
-              <img 
-                src={currentLogo} 
-                alt={currentSiteName} 
-                className="h-8 w-auto transition-transform duration-300 group-hover:scale-110"
-                onError={(e) => {
-                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzAwZDRmZiIvPgo8cGF0aCBkPSJNOCAxMmg0djhoLTR2LTh6TTEyIDhoNHYxMmgtNHYtMTJ6TTE2IDRoNHYxNmgtNHYtMTZ6IiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K'
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded"></div>
-            </div>
-            {/* 根据主题配置的companyName颜色决定公司名称的样式 */}
-            <span 
-              className="text-lg font-bold hidden sm:block drop-shadow-lg"
-              style={{ color: getThemeById(currentThemeId).colors.companyName }}
-            >
-              {currentSiteName}
-            </span>
+            {currentLogo ? (
+              <div className="relative">
+                <img
+                  src={currentLogo}
+                  alt={currentSiteName || 'logo'}
+                  className="h-8 w-auto transition-transform duration-300 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded"></div>
+              </div>
+            ) : null}
+            {currentSiteName ? (
+              <span
+                className="text-lg font-bold hidden sm:block drop-shadow-lg"
+                style={{ color: getThemeById(currentThemeId).colors.companyName }}
+              >
+                {currentSiteName}
+              </span>
+            ) : null}
           </Link>
 
           {/* Desktop Navigation */}

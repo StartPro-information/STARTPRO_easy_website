@@ -185,8 +185,8 @@ export default function AdminLayout({
     return router.pathname.startsWith(href)
   }
 
-  const logoSrc = settings?.site_logo || '/system-default/元兴logo.png'
-  const siteName = settings?.site_name || '管理员后台'
+  const logoSrc = settings?.site_logo || ''
+  const siteName = settings?.site_name || ''
 
   useEffect(() => {
     if (!settings?.site_favicon) return
@@ -233,8 +233,7 @@ export default function AdminLayout({
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-r from-theme-primary to-theme-accent text-white shadow-md">
                   {logoSrc ? <img src={logoSrc} alt="Logo" className="h-6 w-auto object-contain" /> : null}
                 </div>
-                {/* <span className="text-lg font-semibold text-theme-text">{siteName}</span> */}
-                <span className="text-lg font-semibold text-theme-text">管理员后台</span>
+                {siteName ? <span className="text-lg font-semibold text-theme-text">{siteName}</span> : null}
               </Link>
             
             <button
@@ -396,8 +395,6 @@ export default function AdminLayout({
     </>
   )
 }
-
-
 
 
 

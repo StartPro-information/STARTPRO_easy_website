@@ -127,7 +127,7 @@ export default function CreateDocPage() {
               <button
                 onClick={handleSubmitFolder}
                 disabled={submitting}
-                className="px-4 py-2 rounded-md bg-semantic-hero-accent text-white shadow hover:opacity-90 transition disabled:opacity-60"
+                className="px-4 py-2 rounded-md bg-[var(--semantic-cta-primary-bg)] text-[color:var(--semantic-cta-primary-contrast)] shadow hover:opacity-90 transition disabled:opacity-60"
               >
                 保存
               </button>

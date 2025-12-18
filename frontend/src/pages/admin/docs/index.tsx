@@ -148,7 +148,7 @@ export default function DocsListPage() {
         <div className="flex items-center gap-3">
           <Link
             href={`/admin/docs/create${currentParent ? `?parent_id=${currentParent}` : ''}`}
-            className="px-3 py-2 rounded-md bg-semantic-hero-accent text-white shadow hover:opacity-90 transition text-sm"
+            className="px-3 py-2 rounded-md bg-[var(--semantic-cta-primary-bg)] text-[color:var(--semantic-cta-primary-contrast)] shadow hover:opacity-90 transition text-sm"
           >
             新建文档
           </Link>

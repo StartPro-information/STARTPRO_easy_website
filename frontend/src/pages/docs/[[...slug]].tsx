@@ -174,11 +174,15 @@ export default function DocsPage({ doc, tree, slugPath, settings }: DocsPageProp
 
   return (
     <>
-      <Head>
-        <title>文档 - {doc.title}</title>
-        <link id="favicon" rel="icon" href={settings.site_favicon || settings.site_logo || '/favicon.ico'} />
-        <link rel="shortcut icon" href={settings.site_favicon || settings.site_logo || '/favicon.ico'} />
-      </Head>
+        <Head>
+          <title>文档 - {doc.title}</title>
+          {settings.site_favicon ? (
+            <>
+              <link id="favicon" rel="icon" href={settings.site_favicon} />
+              <link rel="shortcut icon" href={settings.site_favicon} />
+            </>
+          ) : null}
+        </Head>
       <DocsLayout
         theme={theme}
         onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')}

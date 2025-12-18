@@ -730,6 +730,11 @@ html {
   color: var(--color-text-secondary) !important;
 }
 
+.admin-shell .docs-ckeditor .ck.ck-toolbar.ck-toolbar_grouping > .ck-toolbar__items,
+.admin-shell .docs-ckeditor .ck.ck-toolbar > .ck-toolbar__items {
+  flex-wrap: wrap;
+}
+
 /* Visual editor should follow theme tokens instead of OS dark mode */
 .visual-editor-shell {
   color: var(--color-text-primary);

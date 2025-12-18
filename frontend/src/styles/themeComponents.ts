@@ -16,6 +16,12 @@ const hexToRgba = (hex: string, alpha = 1) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
+const getContrastColor = (hex: string): string => {
+  const [r, g, b] = hexToRgb(hex)
+  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+  return luminance > 0.55 ? '#0B1120' : '#FFFFFF'
+}
+
 const varName = (themeId: string, token: string) => `--theme-${themeId}-${token}`
 
 export const componentThemes: ThemeComponentStyles = {
@@ -159,8 +165,10 @@ export const applyIsolatedThemeVariables = (themeId: string, overrides?: ThemeOv
   setVar('semantic-panel-border', theme.semantic.panelBorder)
   setVar('semantic-hero-bg', theme.semantic.heroBg)
   setVar('semantic-hero-accent', theme.semantic.heroAccent)
+  setVar('semantic-hero-accent-contrast', getContrastColor(theme.semantic.heroAccent))
   setVar('semantic-cta-primary-bg', theme.semantic.ctaPrimaryBg)
   setVar('semantic-cta-primary-text', theme.semantic.ctaPrimaryText)
+  setVar('semantic-cta-primary-contrast', getContrastColor(theme.semantic.ctaPrimaryBg))
   setVar('semantic-cta-secondary-border', theme.semantic.ctaSecondaryBorder)
   setVar('semantic-tag-bg', theme.semantic.tagBg)
   setVar('semantic-tag-text', theme.semantic.tagText)
