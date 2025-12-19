@@ -338,12 +338,22 @@ html, body {
 }
 .doc-html ul.todo-list .todo-list__label {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
+  gap: 12px;
+}
+.doc-html li.task-list-item,
+.doc-html li:has(> input[type='checkbox']),
+.doc-html li:has(input[type='checkbox']),
+.doc-html ul.todo-list > li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .doc-html input[type='checkbox'] {
   width: 16px;
   height: 16px;
-  margin-right: 8px;
+  margin-right: 0;
+  margin-top: 0;
   border-radius: 4px;
   border: 1.5px solid var(--color-border);
   background: var(--color-surface-alt);
@@ -352,6 +362,7 @@ html, body {
   place-content: center;
   transition: all 0.15s ease;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  flex: 0 0 auto;
 }
 .doc-html input[type='checkbox']:checked {
   border-color: var(--color-primary);
@@ -366,6 +377,19 @@ html, body {
   line-height: 1;
   transform: translateY(-1px);
 }
+/* Ensure checkmark glyph is stable across encodings */
+.doc-html input[type='checkbox']:checked::after {
+  content: "\2713";
+}
+/* Override glyph-based checkmark to avoid baseline drift and encoding issues */
+.doc-html input[type='checkbox']:checked::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: no-repeat center / 10px 10px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3 3 7-7' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  transform: none;
+}
+
 .doc-html blockquote {
   position: relative;
   margin: 1.2em 0;

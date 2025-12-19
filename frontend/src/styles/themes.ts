@@ -474,6 +474,76 @@ export const colorThemes: ColorTheme[] = [
     }
   },
   {
+    id: 'classic-blue',
+    name: '经典蓝',
+    description: '高对比经典蓝，传统稳重',
+    preview: '#0B3D91',
+    colors: {
+      primary: '#0B3D91',
+      secondary: '#1D4ED8',
+      accent: '#38BDF8',
+      background: '#BBD8FF',
+      surface: '#E2F0FF',
+      text: {
+        primary: '#0B1B33',
+        secondary: '#2A3F63',
+        muted: '#5A6D8A'
+      },
+      gradient: {
+        primary: 'linear-gradient(135deg, #0B3D91 0%, #1D4ED8 100%)',
+        secondary: 'linear-gradient(135deg, #1D4ED8 0%, #38BDF8 100%)',
+        hero: 'linear-gradient(135deg, #0B3D91 0%, #1D4ED8 55%, #38BDF8 100%)'
+      },
+      status: {
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        info: '#0B3D91'
+      },
+      companyName: '#0B3D91'
+    },
+    neutral: {
+      border: '#8FB6FF',
+      divider: '#7FAAFF',
+      surfaceAlt: '#F0F7FF'
+    },
+    visual: {
+      series: buildSeries('#0B3D91', '#38BDF8', '#1D4ED8'),
+      grid: 'rgba(11, 27, 51, 0.08)',
+      tooltipBg: 'rgba(255, 255, 255, 0.95)',
+      tooltipText: '#0B1B33',
+      positive: '#10B981',
+      negative: '#EF4444'
+    },
+    semantic: {
+      panelBg: '#EAF4FF',
+      panelBorder: '#8FB6FF',
+      heroBg: '#AFCFFF',
+      heroAccent: '#0B3D91',
+      ctaPrimaryBg: '#0B3D91',
+      ctaPrimaryText: '#FFFFFF',
+      ctaSecondaryBorder: '#0B3D91',
+      tagBg: mixColors('#38BDF8', '#FFFFFF', 0.55),
+      tagText: '#0B3D91',
+      mutedBg: '#C2DCFF',
+      dividerStrong: '#7FAAFF',
+      highlight: '#1D4ED8'
+    },
+    intensity: {
+      borderWeight: 1.55,
+      shadowStep: 0.5,
+      hoverScale: 1.015,
+      accentGlow: 0.2
+    },
+    background: {
+      type: 'pattern',
+      backgroundColor: '#BBD8FF',
+      patternColor: 'rgba(11, 61, 145, 0.18)',
+      secondaryColor: 'rgba(56, 189, 248, 0.18)',
+      opacity: 0.95
+    }
+  },
+  {
     id: 'elegant-dark',
     name: '优雅暗色',
     description: '高端大气，优雅深邃',
@@ -1088,6 +1158,8 @@ export const getCurrentThemeId = (): string => {
       return 'neo-futuristic'
     case '#1E40AF':
       return 'corporate-blue'
+    case '#0B3D91':
+      return 'classic-blue'
     case '#0B1224':
       return 'starry-night'
     case '#111827': {
@@ -1121,7 +1193,3 @@ export const getThemeStyles = (theme: ColorTheme) => ({
   intensity: theme.intensity,
   backgroundEffect: theme.background
 })
-
-
-
-

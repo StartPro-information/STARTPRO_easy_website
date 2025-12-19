@@ -16,8 +16,334 @@ import {
 import { navigationApi, pagesApi } from '@/utils/api'
 import { formatDateTime } from '@/utils'
 import toast from 'react-hot-toast'
-import { useForm } from 'react-hook-form'
+import {
+  useForm,
+  type FieldErrors,
+  type UseFormHandleSubmit,
+  type UseFormRegister,
+  type UseFormReset,
+  type UseFormSetValue,
+  type UseFormWatch
+} from 'react-hook-form'
 import type { NavigationItem, NavigationForm, PageContent } from '@/types'
+
+type NavFormProps = {
+  pages: PageContent[]
+  navItems: NavigationItem[]
+  selectedItem: NavigationItem | null
+  title: string
+  submitText: string
+  onSubmit: (data: NavigationForm) => void
+  onCancel: () => void
+  register: UseFormRegister<NavigationForm>
+  handleSubmit: UseFormHandleSubmit<NavigationForm>
+  reset: UseFormReset<NavigationForm>
+  setValue: UseFormSetValue<NavigationForm>
+  watch: UseFormWatch<NavigationForm>
+  errors: FieldErrors<NavigationForm>
+}
+
+function NavigationItemForm(props: NavFormProps) {
+  const {
+    pages,
+    navItems,
+    selectedItem,
+    title,
+    submitText,
+    onSubmit,
+    onCancel,
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    errors
+  } = props
+
+  const currentUrl = watch('url')
+  const selectedSlug = (() => {
+    if (!currentUrl) return ''
+    if (currentUrl === '/') return 'home'
+    if (currentUrl.startsWith('/pages/')) return currentUrl.replace('/pages/', '')
+    return ''
+  })()
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{title}</h3>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">导航名称 *</label>
+        <input
+          type="text"
+          {...register('name', { required: '请输入导航名称' })}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+          placeholder="输入导航名称"
+        />
+        {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">选择页面（可选）</label>
+        <select
+          value={selectedSlug}
+          onChange={(e) => {
+            const slug = e.target.value
+            setValue('url', slug ? (slug === 'home' ? '/' : `/pages/${slug}`) : '')
+          }}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+        >
+          <option value="">选择一个页面...</option>
+          {pages.map((page) => (
+            <option key={page.id} value={page.slug}>
+              {page.title}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">链接地址 *</label>
+        <input
+          type="text"
+          {...register('url', { required: '请输入链接地址' })}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+          placeholder="/ 或 https://example.com"
+        />
+        {errors.url && <p className="mt-1 text-sm text-red-500">{errors.url.message}</p>}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">打开方式</label>
+          <select
+            {...register('target')}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+          >
+            <option value="_self">当前窗口</option>
+            <option value="_blank">新窗口</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">排序值</label>
+          <input
+            type="number"
+            {...register('sort_order', { valueAsNumber: true })}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+            placeholder="0"
+            min="0"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">父级导航</label>
+        <select
+          {...register('parent_id')}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+        >
+          <option value="">无（顶级导航）</option>
+          {navItems
+            .filter((item) => !item.parent_id && item.id !== selectedItem?.id)
+            .map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+        </select>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          {...register('is_active')}
+          className="w-4 h-4 text-tech-accent border-gray-300 rounded focus:ring-tech-accent"
+        />
+        <label className="ml-2 text-sm text-gray-700 dark:text-gray-300">启用该导航项目</label>
+      </div>
+
+      <div className="flex justify-end space-x-3 pt-4">
+        <button
+          type="button"
+          onClick={() => {
+            onCancel()
+            reset()
+          }}
+          className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+        >
+          取消
+        </button>
+        <button type="submit" className="px-6 py-2 bg-tech-accent text-white rounded-lg hover:bg-tech-secondary transition-colors">
+          {submitText}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+function NavForm({
+  pages,
+  navItems,
+  selectedItem,
+  title,
+  submitText,
+  onSubmit,
+  onCancel,
+  register,
+  handleSubmit,
+  reset,
+  setValue,
+  watch,
+  errors
+}: NavFormProps) {
+  const currentUrl = watch('url')
+  const selectedSlug = (() => {
+    if (!currentUrl) return ''
+    if (currentUrl === '/') return 'home'
+    if (currentUrl.startsWith('/pages/')) {
+      return currentUrl.replace('/pages/', '')
+    }
+    if (currentUrl.startsWith('/')) {
+      return currentUrl.substring(1)
+    }
+    return ''
+  })()
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        {title}
+      </h3>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          å¯¼èˆªåç§° *
+        </label>
+        <input
+          type="text"
+          {...register('name', { required: 'è¯·è¾“å…¥å¯¼èˆªåç§?' })}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+          placeholder="è¾“å…¥å¯¼èˆªåç§°"
+        />
+        {errors.name && (
+          <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          é€‰æ‹©é¡µé¢ (å¯é€?
+        </label>
+        <select
+          value={selectedSlug}
+          onChange={(e) => {
+            const slug = e.target.value
+            setValue('url', slug ? (slug === 'home' ? '/' : `/pages/${slug}`) : '')
+          }}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+        >
+          <option value="">é€‰æ‹©ä¸€ä¸ªé¡µé?..</option>
+          {pages.map((page) => (
+            <option key={page.id} value={page.slug}>{page.title}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          é“¾æŽ¥åœ°å€ *
+        </label>
+        <input
+          type="text"
+          {...register('url', { required: 'è¯·è¾“å…¥é“¾æŽ¥åœ°å€' })}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+          placeholder="/ æˆ?https://example.com"
+        />
+        {errors.url && (
+          <p className="mt-1 text-sm text-red-500">{errors.url.message}</p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            æ‰“å¼€æ–¹å¼
+          </label>
+          <select
+            {...register('target')}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+          >
+            <option value="_self">å½“å‰çª—å£</option>
+            <option value="_blank">æ–°çª—å£</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            æŽ’åºå€?
+          </label>
+          <input
+            type="number"
+            {...register('sort_order', { valueAsNumber: true })}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+            placeholder="0"
+            min="0"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          çˆ¶çº§å¯¼èˆª
+        </label>
+        <select
+          {...register('parent_id')}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+        >
+          <option value="">æ— ï¼ˆé¡¶çº§å¯¼èˆªï¼‰</option>
+          {navItems
+            .filter((item) => !item.parent_id && item.id !== selectedItem?.id)
+            .map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+        </select>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          {...register('is_active')}
+          className="w-4 h-4 text-tech-accent border-gray-300 rounded focus:ring-tech-accent"
+        />
+        <label className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+          å¯ç”¨è¯¥å¯¼èˆªé¡¹ç›?
+        </label>
+      </div>
+
+      <div className="flex justify-end space-x-3 pt-4">
+        <button
+          type="button"
+          onClick={() => {
+            onCancel()
+            reset()
+          }}
+          className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+        >
+          å–æ¶ˆ
+        </button>
+        <button
+          type="submit"
+          className="px-6 py-2 bg-tech-accent text-white rounded-lg hover:bg-tech-secondary transition-colors"
+        >
+          {submitText}
+        </button>
+      </div>
+    </form>
+  )
+}
 
 export default function NavigationManagePage() {
   const [navItems, setNavItems] = useState<NavigationItem[]>([])
@@ -272,6 +598,7 @@ export default function NavigationManagePage() {
     )
   }
 
+  /*
   const NavForm = ({ onSubmit, title, submitText }: {
     onSubmit: (data: NavigationForm) => void,
     title: string,
@@ -425,6 +752,7 @@ export default function NavigationManagePage() {
     </form>
   );
 };
+  */
 
   return (
     <AdminLayout title="导航管理" description="管理网站导航菜单">
@@ -494,10 +822,20 @@ export default function NavigationManagePage() {
         {showCreateModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <NavForm
+              <NavigationItemForm
                 onSubmit={handleCreate}
+                onCancel={() => setShowCreateModal(false)}
                 title="创建导航项目"
                 submitText="创建"
+                pages={pages}
+                navItems={navItems}
+                selectedItem={selectedItem}
+                register={register}
+                handleSubmit={handleSubmit}
+                reset={reset}
+                setValue={setValue}
+                watch={watch}
+                errors={errors}
               />
             </div>
           </div>
@@ -507,10 +845,23 @@ export default function NavigationManagePage() {
         {showEditModal && selectedItem && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <NavForm
+              <NavigationItemForm
                 onSubmit={handleEdit}
+                onCancel={() => {
+                  setShowEditModal(false)
+                  setSelectedItem(null)
+                }}
                 title="编辑导航项目"
                 submitText="保存"
+                pages={pages}
+                navItems={navItems}
+                selectedItem={selectedItem}
+                register={register}
+                handleSubmit={handleSubmit}
+                reset={reset}
+                setValue={setValue}
+                watch={watch}
+                errors={errors}
               />
             </div>
           </div>

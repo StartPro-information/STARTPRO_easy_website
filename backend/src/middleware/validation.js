@@ -137,6 +137,7 @@ const settingsSchemas = {
     site_theme: Joi.string()
       .valid(
         'neo-futuristic',
+        'classic-blue',
         'corporate-blue',
         'elegant-dark',
         'emerald-forest',
