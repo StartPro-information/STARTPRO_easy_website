@@ -18,9 +18,32 @@ export const updateFavicon = (faviconUrl: string) => {
 
   console.log('更新favicon:', faviconUrl)
 
-  // 由于Next.js已经配置了uploads代理，直接使用路径即可
+  const managedAttrSelector = "[data-managed='site-favicon']"
+  const ensureLink = (rel: string, id?: string) => {
+    let link = (id
+      ? document.getElementById(id)
+      : document.querySelector(`link[rel='${rel}']${managedAttrSelector}`)) as HTMLLinkElement | null
+
+    if (!link && !id) {
+      // 若页面已有未标记的 rel 链接，直接复用并打标记，避免重复插入
+      link = document.querySelector(`link[rel='${rel}']`) as HTMLLinkElement | null
+    }
+    if (!link) {
+      link = document.createElement('link')
+      link.rel = rel
+      if (id) link.id = id
+      link.setAttribute('data-managed', 'site-favicon')
+      document.head.appendChild(link)
+    } else {
+      link.setAttribute('data-managed', 'site-favicon')
+      link.rel = rel
+    }
+    return link
+  }
+
+  // 未配置 favicon：不做任何兜底，移除我们注入/管理的 link，让浏览器按默认规则处理
   if (!faviconUrl) {
-    console.log('未提供自定义 favicon，跳过更新')
+    document.querySelectorAll(`link${managedAttrSelector}`).forEach((el) => el.parentNode?.removeChild(el))
     return
   }
 
@@ -31,22 +54,16 @@ export const updateFavicon = (faviconUrl: string) => {
 
   console.log('最终favicon URL:', finalFaviconUrl)
 
-  // 获取现有的favicon元素
-  const faviconElement = document.getElementById('favicon') as HTMLLinkElement
-  const appleTouchIconElement = document.getElementById('apple-touch-icon') as HTMLLinkElement
+  // 创建/更新 favicon 元素（前台页面可能没有任何 <link rel="icon">）
+  const faviconElement = ensureLink('icon', 'favicon')
+  const shortcutIconElement = ensureLink('shortcut icon')
+  const appleTouchIconElement = ensureLink('apple-touch-icon', 'apple-touch-icon')
 
-  if (faviconElement && finalFaviconUrl) {
-    // 添加时间戳避免缓存问题
-    const urlWithTimestamp = finalFaviconUrl + '?v=' + Date.now()
-    faviconElement.href = urlWithTimestamp
-    console.log('已更新favicon元素:', urlWithTimestamp)
-  }
-
-  if (appleTouchIconElement && finalFaviconUrl) {
-    const urlWithTimestamp = finalFaviconUrl + '?v=' + Date.now()
-    appleTouchIconElement.href = urlWithTimestamp
-    console.log('已更新apple-touch-icon元素:', urlWithTimestamp)
-  }
+  // 添加时间戳避免缓存问题
+  const urlWithTimestamp = finalFaviconUrl + '?v=' + Date.now()
+  faviconElement.href = urlWithTimestamp
+  shortcutIconElement.href = urlWithTimestamp
+  appleTouchIconElement.href = urlWithTimestamp
 }
 
 /**
