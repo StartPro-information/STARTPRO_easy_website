@@ -1,0 +1,530 @@
+import React, { useState, useEffect, useCallback } from 'react'
+import AdminLayout from '@/components/AdminLayout'
+import { motion } from 'framer-motion'
+import Link from 'next/link'
+import { 
+  Plus, 
+  Search, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  Filter,
+  MoreHorizontal,
+  FileText,
+  Clock,
+  User,
+  ExternalLink,
+  Copy,
+  Link as LinkIcon
+} from 'lucide-react'
+import { pagesApi, tagsApi } from '@/utils/api'
+import { formatDateTime } from '@/utils'
+import toast from 'react-hot-toast'
+import type { PageContent, PaginatedResponse } from '@/types'
+
+export default function AdminPagesPage() {
+  const [pages, setPages] = useState<PageContent[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [filter, setFilter] = useState<'all' | 'published' | 'draft'>('all')
+  const [tagFilter, setTagFilter] = useState<string>('all')
+  const [tags, setTags] = useState<Array<{id: string, name: string}>>([])
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+
+  // 加载标签数据
+  useEffect(() => {
+    const loadTags = async () => {
+      try {
+        const response = await tagsApi.getAll();
+        if (response.success) {
+          setTags(response.data);
+        }
+      } catch (error) {
+        console.error('获取标签失败:', error);
+      }
+    };
+    loadTags();
+  }, []);
+
+  // 防抖搜索
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setCurrentPage(1) // 搜索时重置到第一页
+    }, 500)
+    
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // 获取页面数据
+  const fetchPages = useCallback(async () => {
+    try {
+      console.log('开始获取页面数据:', { currentPage, debouncedSearchTerm, filter })
+      setIsLoading(true)
+      const params: any = {
+        page: currentPage,
+        limit: 10,
+        search: debouncedSearchTerm || undefined,
+        tagId: tagFilter !== 'all' ? tagFilter : undefined
+      }
+
+      const response: PaginatedResponse<PageContent> = await pagesApi.getAll(params)
+      
+      if (response.success) {
+        let filteredPages = response.data || []
+        
+        // 客户端过滤（因为后端API可能不支持发布状态过滤）
+        if (filter === 'published') {
+          filteredPages = filteredPages.filter(page => page.published)
+        } else if (filter === 'draft') {
+          filteredPages = filteredPages.filter(page => !page.published)
+        }
+        
+        console.log('获取到页面数据:', filteredPages)
+        setPages(filteredPages)
+        setTotalPages(response.meta?.total_pages || 1)
+      } else {
+        toast.error(response.message || '获取页面列表失败')
+      }
+    } catch (error: any) {
+      console.error('获取页面列表失败:', error)
+      // 检查是否是限流错误
+      if (error.response && error.response.status === 429) {
+        toast.error('请求过于频繁，请稍后再试')
+      } else {
+        toast.error('获取页面列表失败')
+      }
+    } finally {
+      console.log('获取页面数据完成')
+      setIsLoading(false)
+    }
+  }, [currentPage, debouncedSearchTerm, tagFilter, filter])
+
+  useEffect(() => {
+    fetchPages()
+  }, [currentPage, debouncedSearchTerm, tagFilter, filter])
+
+  // 添加一个useEffect来处理初始加载
+  useEffect(() => {
+    // 确保只在组件挂载时调用一次
+    if (pages.length === 0 && isLoading) {
+      fetchPages()
+    }
+  }, [])
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('确定要删除这个页面吗？此操作无法撤销。')) {
+      return
+    }
+
+    try {
+      const response = await pagesApi.delete(id)
+      if (response.success) {
+        toast.success('页面删除成功')
+        fetchPages()
+      } else {
+        toast.error(response.message || '删除失败')
+      }
+    } catch (error) {
+      console.error('删除页面失败:', error)
+      toast.error('删除失败，请稍后重试')
+    }
+  }
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    setCurrentPage(1)
+    fetchPages()
+  }
+
+  const copyPageLink = async (page: PageContent) => {
+    const path = `/pages/${page.slug}`
+    try {
+      // 先检查是否支持 Clipboard API
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(path)
+        toast.success(`页面路径已复制： ${page.title}`)
+      } else {
+        // 降级方案：使用传统的文本域方法
+        const textArea = document.createElement('textarea')
+        textArea.value = path
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+
+        const success = document.execCommand('copy')
+        document.body.removeChild(textArea)
+
+        if (success) {
+          toast.success(`页面路径已复制： ${page.title}`)
+        } else {
+          throw new Error('复制命令失败')
+        }
+      }
+    } catch (error) {
+      console.error('复制路径失败:', error)
+      toast.error('复制路径失败，请手动复制：' + path)
+    }
+  }
+
+  return (
+    <AdminLayout title="页面管理" description="管理网站页面内容">
+      <div className="space-y-6">
+        {/* 页面头部 */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              页面管理
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              管理网站的所有页面内容
+            </p>
+          </div>
+          
+          <Link
+            href="/admin/pages/create"
+            className="mt-4 md:mt-0 inline-flex items-center btn-primary"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            创建页面
+          </Link>
+        </div>
+
+        {/* 搜索和过滤 */}
+        <div className="bg-white dark:bg-tech-light rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
+            {/* 搜索 */}
+            <form onSubmit={handleSearch} className="flex-1 max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="搜索页面标题或内容..."
+                  className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-tech-dark text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+                />
+              </div>
+            </form>
+
+            {/* 过滤器 */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Filter className="w-4 h-4 text-gray-500" />
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value as any)}
+                  className="border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-tech-dark text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+                >
+                  <option value="all">全部页面</option>
+                  <option value="published">已发布</option>
+                  <option value="draft">草稿</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <select
+                  value={tagFilter}
+                  onChange={(e) => setTagFilter(e.target.value)}
+                  className="border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-tech-dark text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+                >
+                  <option value="all">全部标签</option>
+                  {tags.map(tag => {
+                    return (
+                      <option key={tag.id} value={tag.id}>
+                        {tag.name}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 页面列表 */}
+        <div className="bg-white dark:bg-tech-light rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-tech-accent"></div>
+            </div>
+          ) : pages.length === 0 ? (
+            <div className="text-center py-12">
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                暂无页面
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                开始创建您的第一个页面吧
+              </p>
+              <Link
+                href="/admin/pages/create"
+                className="btn-primary"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                创建页面
+              </Link>
+            </div>
+          ) : (
+            <>
+              {/* 表格头部 */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 px-6 py-3">
+                <div className="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <div className="col-span-4">标题</div>
+                  <div className="col-span-2">状态</div>
+                  <div className="col-span-2">分类标签</div>
+                  <div className="col-span-1">创建者</div>
+                  <div className="col-span-1">更新时间</div>
+                  <div className="col-span-2">操作</div>
+                </div>
+              </div>
+
+              {/* 表格内容 */}
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                {pages.map((page, index) => (
+                  <motion.div
+                    key={page.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <div className="grid grid-cols-12 gap-4 items-center">
+                      {/* 标题 */}
+                      <div className="col-span-4">
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0">
+                            <FileText className="w-5 h-5 text-gray-400" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                              {page.title}
+                            </h3>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 状态 */}
+                      <div className="col-span-2">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          page.published
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                        }`}>
+                          {page.published ? '已发布' : '草稿'}
+                        </span>
+                      </div>
+
+                      {/* 标签 */}
+                      <div className="col-span-2">
+                        {page.tags && page.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {page.tags.map(tag => (
+                              <span
+                                key={tag.id}
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                              >
+                                {tag.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 创建者 */}
+                      <div className="col-span-1">
+                        <div className="flex items-center space-x-2">
+                          <User className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {(page as any).created_by_name || '未知'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 更新时间 */}
+                      <div className="col-span-1">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {formatDateTime(page.updated_at)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 操作 */}
+                      <div className="col-span-2">
+                        <div className="flex items-center space-x-2">
+                          {page.published && (
+                            <Link
+                              href={`/pages/${page.slug}`}
+                              target="_blank"
+                              className="p-1 text-gray-400 hover:text-tech-accent transition-colors"
+                              title="在新窗口中查看页面"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </Link>
+                          )}
+                          <Link
+                            href={`/admin/pages/${page.id}`}
+                            className="p-1 text-gray-400 hover:text-tech-accent transition-colors"
+                            title="查看详情"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                          <Link
+                            href={`/admin/pages/${page.id}/edit`}
+                            className="p-1 text-gray-400 hover:text-tech-accent transition-colors"
+                            title="编辑页面"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(page.id)}
+                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                            title="删除页面"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                            {page.template_data && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 mt-1">
+                                可视化编辑
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 状态 */}
+                      <div className="col-span-2">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          page.published
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                            : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                        }`}>
+                          {page.published ? '已发布' : '草稿'}
+                        </span>
+                      </div>
+
+                      {/* 标签 */}
+                      <div className="col-span-2">
+                        {page.tags && page.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {page.tags.map(tag => (
+                              <span
+                                key={tag.id}
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                              >
+                                {tag.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 创建者 */}
+                      <div className="col-span-1">
+                        <div className="flex items-center space-x-2">
+                          <User className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {(page as any).created_by_name || '未知'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 更新时间 */}
+                      <div className="col-span-1">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {formatDateTime(page.updated_at)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 操作 */}
+                      <div className="col-span-2">
+                        <div className="flex items-center space-x-2">
+                          {page.published && (
+                            <Link
+                              href={`/pages/${page.slug}`}
+                              target="_blank"
+                              className="p-1 text-gray-400 hover:text-tech-accent transition-colors"
+                              title="在新窗口中查看页面"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </Link>
+                          )}
+                          <Link
+                            href={`/admin/pages/${page.id}`}
+                            className="p-1 text-gray-400 hover:text-tech-accent transition-colors"
+                            title="查看详情"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                          <Link
+                            href={`/admin/pages/${page.id}/edit`}
+                            className="p-1 text-gray-400 hover:text-tech-accent transition-colors"
+                            title="编辑页面"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(page.id)}
+                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                            title="删除页面"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </>
+          ))}
+        </div>
+
+        {/* 分页 */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              显示第 {(currentPage - 1) * 10 + 1} 到 {Math.min(currentPage * 10, pages.length)} 条，共 {pages.length} 条记录
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-tech-dark text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                上一页
+              </button>
+              
+              <span className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                {currentPage} / {totalPages}
+              </span>
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-tech-dark text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                下一页
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </AdminLayout>
+  )
+}
