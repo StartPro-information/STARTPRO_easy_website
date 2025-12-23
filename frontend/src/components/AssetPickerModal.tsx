@@ -297,7 +297,12 @@ const AssetPickerModal = ({
           page: page.toString(),
           limit: limitValue.toString()
         })
-        const response = await fetch(`/api/system-default/files?${params.toString()}`, {
+        const systemParams = new URLSearchParams({
+          folder: folder || 'root',
+          page: page.toString(),
+          limit: limitValue.toString()
+        })
+        const response = await fetch(`/api/system-default/files?${systemParams.toString()}`, {
           credentials: 'include'
         }).then(res => res.json())
         if (response.success) {

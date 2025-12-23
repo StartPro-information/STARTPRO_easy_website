@@ -119,10 +119,12 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 // 静态文件服务
-app.use('/uploads', express.static('uploads'))
+const uploadsDir = path.join(__dirname, '../uploads')
+const systemDefaultDir = path.join(__dirname, '../system-default')
+app.use('/uploads', express.static(uploadsDir))
 // 为系统默认素材提供一个经过 /uploads 前缀的访问路径，兼容前端现有代理规则
-app.use('/uploads/system-default', express.static('system-default'))
-app.use('/system-default', express.static('system-default'))
+app.use('/uploads/system-default', express.static(systemDefaultDir))
+app.use('/system-default', express.static(systemDefaultDir))
 
 // 数据库连接
 const db = require('./config/database')

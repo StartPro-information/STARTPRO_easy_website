@@ -591,20 +591,20 @@ router.get('/files', authenticateToken, requireEditor, async (req, res) => {
 
     if (folder !== 'root') {
       // 使用统一的 getFolderPath 函数来确定目标目录
-      const resolvedTargetDir = getFolderPath(folder);
+      const resolvedTargetDir = getFolderPath(folder)
 
       if (resolvedTargetDir) {
-        targetDir = resolvedTargetDir;
-        baseUrl = `/uploads/${folder}`;
+        targetDir = resolvedTargetDir
+        baseUrl = `/uploads/${folder}`
       } else {
         // 如果 getFolderPath 返回 null，使用根 uploads 目录
-        targetDir = uploadsDir;
-        baseUrl = `/uploads/${folder}`;
+        targetDir = uploadsDir
+        baseUrl = `/uploads/${folder}`
       }
     } else {
       // 根目录
-      targetDir = uploadsDir;
-      baseUrl = '/uploads';
+      targetDir = uploadsDir
+      baseUrl = '/uploads'
     }
 
     // 获取文件列表（不递归，只获取当前目录）
@@ -619,7 +619,7 @@ router.get('/files', authenticateToken, requireEditor, async (req, res) => {
       for (const item of items) {
         if (!item.isDirectory()) {
           const fullPath = path.join(dir, item.name)
-          const relativePath = path.relative(uploadsDir, fullPath);
+          const relativePath = path.relative(uploadsDir, fullPath)
           const url = `${baseUrl}/${item.name}`.replace('//', '/')
 
           const stats = fs.statSync(fullPath)

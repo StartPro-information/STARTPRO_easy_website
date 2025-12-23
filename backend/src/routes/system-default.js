@@ -116,8 +116,8 @@ router.get('/files', async (req, res) => {
 
     // 确定目标目录
     let targetDir = systemDefaultDir
-    // system-default 与 uploads 为并列目录，对外访问路径使用 /system-default
-    let baseUrl = '/system-default'
+    // system-default 与 uploads 为并列目录，对外访问路径使用 /uploads/system-default
+    let baseUrl = '/uploads/system-default'
 
     if (folder !== 'root') {
       // 验证路径安全性
@@ -129,7 +129,7 @@ router.get('/files', async (req, res) => {
       }
 
       targetDir = path.join(systemDefaultDir, folder)
-      baseUrl = `/system-default/${folder}`
+      baseUrl = `/uploads/system-default/${folder}`
     }
 
     // 获取文件列表（不递归，只获取当前目录）
