@@ -15,11 +15,14 @@ interface BannerCarouselProps {
   interval?: number
   showIndicators?: boolean
   showArrows?: boolean
+  imageHeightMode?: 'fixed' | 'auto'
   className?: string
   titleColorMode?: 'default' | 'custom'
   customTitleColor?: string
   subtitleColorMode?: 'default' | 'custom'
   customSubtitleColor?: string
+  buttonColorMode?: 'default' | 'custom'
+  customButtonColor?: string
 }
 
 const BannerCarousel: React.FC<BannerCarouselProps> = ({
@@ -28,15 +31,19 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({
   interval = 5000,
   showIndicators = true,
   showArrows = true,
+  imageHeightMode = 'fixed',
   className = '',
   titleColorMode = 'default',
   customTitleColor = '',
   subtitleColorMode = 'default',
-  customSubtitleColor = ''
+  customSubtitleColor = '',
+  buttonColorMode = 'default',
+  customButtonColor = ''
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
+  const useAutoHeight = imageHeightMode === 'auto'
 
   // 获取文字叠加位置的CSS类
   const getOverlayPositionClass = (position: Slide['overlayPosition']) => {
@@ -119,7 +126,7 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({
 
   if (slides.length === 0) {
     return (
-      <div className={`relative w-full h-96 bg-gray-200 dark:bg-gray-700 rounded-xl overflow-hidden ${className}`}>
+      <div className={`relative w-full h-96 bg-gray-200 dark:bg-gray-700 overflow-hidden ${className}`}>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <div className="text-4xl mb-4">🖼️</div>
@@ -133,26 +140,34 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({
   return (
     <div 
       ref={carouselRef}
-      className={`relative w-full overflow-hidden rounded-xl ${className}`}
+      className={`relative w-full overflow-hidden ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* 幻灯片容器 */}
       <div 
-        className="relative w-full h-96 md:h-[500px] transition-transform duration-500 ease-in-out"
+        className={`relative w-full ${useAutoHeight ? '' : 'h-96 md:h-[500px]'} transition-transform duration-500 ease-in-out`}
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        <div className="flex w-full h-full">
+        <div className={`flex w-full ${useAutoHeight ? '' : 'h-full'}`}>
           {slides.map((slide, index) => (
             <div 
               key={index} 
-              className="relative w-full h-full flex-shrink-0"
+              className={`relative w-full flex-shrink-0 ${useAutoHeight ? '' : 'h-full'}`}
             >
               {/* 背景图片 */}
-              <div 
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url(${slide.image})` }}
-              />
+              {useAutoHeight && slide.image ? (
+                <img
+                  src={slide.image}
+                  alt={slide.title || 'banner'}
+                  className="w-full h-auto block"
+                />
+              ) : (
+                <div 
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${slide.image})` }}
+                />
+              )}
               
               
               {/* 文字叠加 */}
@@ -186,6 +201,11 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({
                     <a
                       href={slide.buttonLink || '#'}
                       className="inline-block px-6 py-3 bg-tech-accent text-white font-medium rounded-lg hover:bg-tech-secondary transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                      style={
+                        buttonColorMode === 'custom' && customButtonColor
+                          ? { color: customButtonColor }
+                          : undefined
+                      }
                     >
                       {slide.buttonText}
                     </a>

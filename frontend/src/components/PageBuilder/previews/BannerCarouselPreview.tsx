@@ -37,10 +37,13 @@ export const BannerCarouselPreview: React.FC<{ component: TemplateComponent }> =
     showArrows = true,
     widthOption = 'full',
     backgroundColorOption = 'default',
+    imageHeightMode = 'fixed',
     titleColorMode = 'default',
     customTitleColor = '',
     subtitleColorMode = 'default',
-    customSubtitleColor = ''
+    customSubtitleColor = '',
+    buttonColorMode = 'default',
+    customButtonColor = ''
   } = component.props
 
   const containerClass = `${widthOption === 'standard' ? 'max-w-screen-2xl mx-auto' : 'w-full'} ${
@@ -66,7 +69,7 @@ export const BannerCarouselPreview: React.FC<{ component: TemplateComponent }> =
   if (slideCount === 0) {
     return (
       <div className={containerClass}>
-        <div className="relative overflow-hidden rounded-xl bg-gray-200 dark:bg-gray-700 banner-carousel-preview">
+        <div className="relative overflow-hidden bg-gray-200 dark:bg-gray-700 banner-carousel-preview">
           <div className="relative w-full h-96 flex items-center justify-center">
             <div className="text-center text-white">
               <div className="text-5xl mb-4">🖼️</div>
@@ -80,31 +83,48 @@ export const BannerCarouselPreview: React.FC<{ component: TemplateComponent }> =
   }
 
   const currentSlide = slides[currentIndex] || {}
+  const useAutoHeight = imageHeightMode === 'auto' && Boolean(currentSlide.image)
   const overlayPosClass = getOverlayPositionClass(currentSlide.overlayPosition as any)
 
   return (
     <div className={containerClass}>
-      <div className="relative overflow-hidden rounded-xl bg-color-background banner-carousel-preview">
-          <div className="relative w-full h-96 md:h-[480px] banner-slide-container">
-          <div className="absolute inset-0">
-            {currentSlide.image ? (
+      <div className="relative overflow-hidden bg-color-background banner-carousel-preview">
+          <div className={`relative w-full ${useAutoHeight ? '' : 'h-96 md:h-[480px]'} banner-slide-container`}>
+          {useAutoHeight ? (
+            <>
               <img
                 key={currentSlide.image}
                 src={currentSlide.image}
-                alt={currentSlide.title || '轮播图'}
-                className="w-full h-full object-cover"
+                alt={currentSlide.title || 'banner'}
+                className="w-full h-auto block"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement
                   target.style.display = 'none'
                 }}
               />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary/70 to-secondary/70 flex items-center justify-center">
-                <div className="text-5xl opacity-50">🖼️</div>
-              </div>
-            )}
-            <div className="absolute inset-0 bg-black/25" />
-          </div>
+              <div className="absolute inset-0 bg-black/25" />
+            </>
+          ) : (
+            <div className="absolute inset-0">
+              {currentSlide.image ? (
+                <img
+                  key={currentSlide.image}
+                  src={currentSlide.image}
+                  alt={currentSlide.title || 'banner'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.style.display = 'none'
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-primary/70 to-secondary/70 flex items-center justify-center">
+                  <div className="text-5xl opacity-50">???</div>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/25" />
+            </div>
+          )}
 
           <div className={`absolute ${overlayPosClass} z-10 banner-slide-content-container px-4 md:px-6`}>
             <div className="max-w-3xl bg-color-surface/70 backdrop-blur-sm rounded-xl p-6 md:p-8 banner-slide-content">
@@ -128,6 +148,11 @@ export const BannerCarouselPreview: React.FC<{ component: TemplateComponent }> =
                 <a
                   href={currentSlide.buttonLink || '#'}
                   className="inline-block px-6 py-3 bg-primary text-text-primary font-medium rounded-lg hover:bg-secondary transition-colors duration-300 banner-slide-button dark:text-white"
+                  style={
+                    buttonColorMode === 'custom' && customButtonColor
+                      ? { color: customButtonColor }
+                      : undefined
+                  }
                 >
                   {currentSlide.buttonText}
                 </a>
@@ -209,10 +234,13 @@ export const BannerCarousel: React.FC<{ component: TemplateComponent }> = ({ com
     showArrows = true,
     widthOption = 'full',
     backgroundColorOption = 'default',
+    imageHeightMode = 'fixed',
     titleColorMode = 'default',
     customTitleColor = '',
     subtitleColorMode = 'default',
-    customSubtitleColor = ''
+    customSubtitleColor = '',
+    buttonColorMode = 'default',
+    customButtonColor = ''
   } = component.props
   const containerClass = `${widthOption === 'standard' ? 'max-w-screen-2xl mx-auto' : 'w-full'} ${
     backgroundColorOption === 'transparent' ? '' : 'bg-color-surface'
@@ -228,11 +256,14 @@ export const BannerCarousel: React.FC<{ component: TemplateComponent }> = ({ com
         interval={interval}
         showIndicators={showIndicators}
         showArrows={showArrows}
+        imageHeightMode={imageHeightMode}
         titleColorMode={titleColorMode}
         customTitleColor={customTitleColor}
         subtitleColorMode={subtitleColorMode}
         customSubtitleColor={customSubtitleColor}
-        className="rounded-xl overflow-hidden"
+        buttonColorMode={buttonColorMode}
+        customButtonColor={customButtonColor}
+        className="overflow-hidden"
       />
 
       {/* 仅保留标题与副标题信息 */}

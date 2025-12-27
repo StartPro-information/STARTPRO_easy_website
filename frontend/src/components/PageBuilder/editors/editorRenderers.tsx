@@ -14,7 +14,7 @@ import ImageTextEditor from './ImageTextEditor'
 import ImageTextHorizontalEditor from './ImageTextHorizontalEditor'
 import RawHtmlEditor from './RawHtmlEditor'
 import VideoEditor from './VideoEditor'
-import TableEditor from './TableEditor'
+import TableEditorLauncher from './TableEditorLauncher'
 import ProductShowcaseCardEditor from './ProductShowcaseCardEditor'
 
 export type CustomEditorProps = {
@@ -364,12 +364,30 @@ const renderTableEditor: CustomEditorRenderer = ({
   if ((!formData.columns || formData.columns.length === 0) && columns.length > 0) {
     handleFieldChange('columns', columns)
   }
+  const rowKeys =
+    Array.isArray(rows) && rows.length > 0
+      ? Array.from(new Set(rows.flatMap((row: any) => Object.keys(row || {}))))
+      : []
+  const mergedColumns = [...columns]
+  const existingKeys = new Set(mergedColumns.map((col: any) => col.key).filter(Boolean))
+  rowKeys.forEach((key) => {
+    if (!existingKeys.has(key)) {
+      mergedColumns.push({ key, label: key, align: 'left' })
+    }
+  })
+  if (mergedColumns.length !== columns.length) {
+    handleFieldChange('columns', mergedColumns)
+  }
   return (
-    <TableEditor
-      columns={columns}
+    <TableEditorLauncher
+      columns={mergedColumns}
       rows={rows}
+      highlightHeader={formData.highlightHeader}
+      highlightFirstRow={formData.highlightFirstRow}
+      highlightFirstColumn={formData.highlightFirstColumn}
       onColumnsChange={(next) => handleFieldChange('columns', next)}
       onRowsChange={(next) => handleFieldChange('rows', next)}
+      onStyleChange={(key, value) => handleFieldChange(key, value)}
     />
   )
 }

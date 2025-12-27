@@ -73,9 +73,11 @@ const ComponentEditor = ({
   }, [component])
 
   const handleFieldChange = (key: string, value: any) => {
-    const newFormData = { ...formData, [key]: value }
-    setFormData(newFormData)
-    onUpdate(newFormData)
+    setFormData((prev: any) => {
+      const next = { ...prev, [key]: value }
+      onUpdate(next)
+      return next
+    })
   }
 
   const handleArrayFieldChange = (arrayKey: string, index: number, fieldKey: string, value: any) => {
@@ -168,13 +170,16 @@ const ComponentEditor = ({
     'shape',
     'image',
     'imagePosition',
+    'imageHeightMode',
     'linkUrl',
     'linkTarget',
     'alignment',
     'titleColorMode',
     'customTitleColor',
     'subtitleColorMode',
-    'customSubtitleColor'
+    'customSubtitleColor',
+    'buttonColorMode',
+    'customButtonColor'
   ]
   const fieldSkipMap: Record<string, Set<string>> = {
     'cyber-showcase': new Set(['title', 'description'])
@@ -210,13 +215,16 @@ const ComponentEditor = ({
               {key === 'widthOption' && '宽度设置'}
               {key === 'backgroundColorOption' && '背景模式'}
               {key === 'imagePosition' && '图片位置'}
+              {key === 'imageHeightMode' && '图片高度模式'}
               {key === 'alignment' && '对齐方式'}
               {key === 'titleColorMode' && '标题颜色模式'}
               {key === 'customTitleColor' && '自定义标题颜色'}
               {key === 'subtitleColorMode' && '副标题颜色模式'}
               {key === 'customSubtitleColor' && '自定义副标题颜色'}
+              {key === 'buttonColorMode' && '按钮文字颜色模式'}
+              {key === 'customButtonColor' && '自定义按钮文字颜色'}
             </label>
-            {(key === 'customTitleColor' || key === 'customSubtitleColor') ? (
+            {(key === 'customTitleColor' || key === 'customSubtitleColor' || key === 'customButtonColor') ? (
               <div className="flex items-center space-x-3">
                 <input
                   type="color"

@@ -7,11 +7,21 @@ export const TablePreview: React.FC<{ component: TemplateComponent }> = ({ compo
     columns = [],
     rows = [],
     widthOption = 'full',
-    backgroundColorOption = 'default'
+    backgroundColorOption = 'default',
+    highlightHeader = true,
+    highlightFirstRow = false,
+    highlightFirstColumn = false
   } = component.props
 
   const containerClass = widthOption === 'standard' ? 'max-w-screen-2xl mx-auto' : 'w-full'
   const shellClass = `table-block ${backgroundColorOption === 'transparent' ? 'table-block--transparent' : 'table-block--default'}`
+  const shouldHighlightHeader = highlightHeader !== false || highlightFirstRow
+  const highlightClass = [
+    shouldHighlightHeader ? 'table-block--highlight-header' : '',
+    highlightFirstColumn ? 'table-block--highlight-first-col' : ''
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   const rowKeys =
     Array.isArray(rows) && rows.length > 0
@@ -47,7 +57,7 @@ export const TablePreview: React.FC<{ component: TemplateComponent }> = ({ compo
 
   return (
     <div className={containerClass}>
-      <div className={shellClass}>
+      <div className={`${shellClass} ${highlightClass}`.trim()}>
         {title && <h3 className="table-block__title text-2xl font-bold mb-4">{title}</h3>}
         <div className="table-block__wrapper">
           <table className="table-block__table">

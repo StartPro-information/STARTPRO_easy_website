@@ -484,7 +484,7 @@ const DraggableComponent: React.FC<{
       
       {/* 编辑工具栏 */}
       {!previewMode && (
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-auto">
           <div className="flex items-center space-x-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-1">
             <button
               onClick={(e) => {

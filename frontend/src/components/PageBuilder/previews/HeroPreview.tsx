@@ -12,6 +12,7 @@ export const HeroPreview: React.FC<{ component: TemplateComponent }> = ({ compon
     backgroundColor,
     widthOption = 'full',
     backgroundColorOption = 'default',
+    imageHeightMode = 'fixed',
     titleColorMode = 'default',
     customTitleColor = '',
     subtitleColorMode = 'default',
@@ -40,10 +41,11 @@ export const HeroPreview: React.FC<{ component: TemplateComponent }> = ({ compon
   }, [backgroundImage])
 
   const shouldShowBackgroundImage = backgroundImage && bgImageLoaded && !bgImageError
+  const useAutoHeight = imageHeightMode === 'auto' && shouldShowBackgroundImage
 
   // 设置内联样式以保持功能完整性
   const heroStyle = {
-    backgroundImage: shouldShowBackgroundImage
+    backgroundImage: shouldShowBackgroundImage && !useAutoHeight
       ? `url(${backgroundImage})`
       : undefined,
     backgroundColor: backgroundColorOption === 'transparent'
@@ -59,9 +61,16 @@ export const HeroPreview: React.FC<{ component: TemplateComponent }> = ({ compon
   return (
     <div className={containerClass}>
       <div
-        className="hero-preview relative h-96 lg:h-[500px] flex items-center justify-center rounded-xl overflow-hidden group transition-all duration-300"
+        className={`hero-preview relative ${useAutoHeight ? '' : 'h-96 lg:h-[500px] flex items-center justify-center'} overflow-hidden group transition-all duration-300`}
         style={heroStyle}
       >
+      {useAutoHeight && (
+        <img
+          src={backgroundImage}
+          alt={title || 'Hero'}
+          className="w-full h-auto block"
+        />
+      )}
       {/* 背景装饰 - 仅在非透明模式下显示 */}
       {!shouldShowBackgroundImage && backgroundColorOption !== 'transparent' && (
         <>
@@ -93,7 +102,7 @@ export const HeroPreview: React.FC<{ component: TemplateComponent }> = ({ compon
 
       {/* 主内容 */}
       <motion.div
-        className="hero-content relative text-center w-full px-8 z-10"
+        className={`hero-content ${useAutoHeight ? 'absolute inset-0 flex flex-col items-center justify-center text-center' : 'relative text-center'} w-full px-8 z-10`}
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}

@@ -19,7 +19,8 @@ export const imageComponents: ComponentDefinition[] = [
         subtitleColorMode: 'default',
         customSubtitleColor: '',
         widthOption: 'full',
-        backgroundColorOption: 'default'
+        backgroundColorOption: 'default',
+        imageHeightMode: 'fixed'
       },
       editableFields: [
         { key: 'title', label: '主标题', type: 'text', value: '', required: true },
@@ -40,6 +41,10 @@ export const imageComponents: ComponentDefinition[] = [
         { key: 'widthOption', label: '宽度选项', type: 'text', value: 'full', options: [
           { label: '全宽', value: 'full' },
           { label: '标准宽度', value: 'standard' }
+        ] },
+        { key: 'imageHeightMode', label: '图片高度模式', type: 'text', value: 'fixed', options: [
+          { label: '固定高度', value: 'fixed' },
+          { label: '自动高度', value: 'auto' }
         ] },
         { key: 'backgroundColorOption', label: '背景色选项', type: 'text', value: 'default', options: [
           { label: '默认背景色', value: 'default' },
@@ -123,6 +128,9 @@ export const imageComponents: ComponentDefinition[] = [
         customTitleColor: '',
         subtitleColorMode: 'default',
         customSubtitleColor: '',
+        buttonColorMode: 'default',
+        customButtonColor: '',
+        imageHeightMode: 'fixed',
         widthOption: 'full',
         backgroundColorOption: 'default'
       },
@@ -139,6 +147,11 @@ export const imageComponents: ComponentDefinition[] = [
           { label: '自定义', value: 'custom' }
         ] },
         { key: 'customSubtitleColor', label: '自定义副标题颜色', type: 'text', value: '' },
+        { key: 'buttonColorMode', label: '按钮文字颜色模式', type: 'text', value: 'default', options: [
+          { label: '默认', value: 'default' },
+          { label: '自定义', value: 'custom' }
+        ] },
+        { key: 'customButtonColor', label: '自定义按钮文字颜色', type: 'text', value: '' },
         { key: 'autoPlay', label: '自动播放', type: 'text', value: true },
         { key: 'interval', label: '轮播间隔(毫秒)', type: 'text', value: 5000 },
         { key: 'showIndicators', label: '显示指示器', type: 'text', value: true },
@@ -146,6 +159,10 @@ export const imageComponents: ComponentDefinition[] = [
         { key: 'widthOption', label: '宽度选项', type: 'text', value: 'full', options: [
           { label: '全宽', value: 'full' },
           { label: '标准宽度', value: 'standard' }
+        ] },
+        { key: 'imageHeightMode', label: '图片高度模式', type: 'text', value: 'fixed', options: [
+          { label: '固定高度', value: 'fixed' },
+          { label: '自动高度', value: 'auto' }
         ] },
         { key: 'backgroundColorOption', label: '背景色选项', type: 'text', value: 'default', options: [
           { label: '默认背景色', value: 'default' },

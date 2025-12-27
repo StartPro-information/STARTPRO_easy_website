@@ -218,6 +218,9 @@ export const textComponents: ComponentDefinition[] = [
           { item: '指标 B', value: '87', status: '告警' },
           { item: '指标 C', value: '45', status: '离线' }
         ],
+        highlightHeader: true,
+        highlightFirstRow: false,
+        highlightFirstColumn: false,
         widthOption: 'full',
         backgroundColorOption: 'default'
       },
