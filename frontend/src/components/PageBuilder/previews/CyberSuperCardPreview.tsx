@@ -202,7 +202,6 @@ export const CyberSuperCardPreview: React.FC<{ component: TemplateComponent }> =
 
                 <div className="cyber-super-card__body">
                   <div className="cyber-super-card__heading">
-                    <p className="cyber-super-card__eyebrow">CYBER MODULE</p>
                     <h3 className="cyber-super-card__title">{card.title || `赛博卡片 ${index + 1}`}</h3>
                   </div>
                   {description && (

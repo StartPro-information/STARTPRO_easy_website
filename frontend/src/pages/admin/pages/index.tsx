@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react'
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react'
 import AdminLayout from '@/components/AdminLayout'
 import TagEditModal from '@/components/TagEditModal'
 import TagFilterModal from '@/components/TagFilterModal'
@@ -25,6 +25,8 @@ import toast from 'react-hot-toast'
 import type { PageContent, PaginatedResponse, Tag } from '@/types'
 
 export default function AdminPagesPage() {
+  const hasInitializedFromQuery = useRef(false)
+  const storageKey = 'admin-pages-state'
   const [pages, setPages] = useState<PageContent[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -40,7 +42,8 @@ export default function AdminPagesPage() {
   const [editingTagsForPageId, setEditingTagsForPageId] = useState<string | null>(null)
   const [selectedTagsForEditing, setSelectedTagsForEditing] = useState<string[]>([])
   const [isTagModalOpen, setIsTagModalOpen] = useState(false)
-  const [pageSize, setPageSize] = useState<number>(10)
+  const [pageSize, setPageSize] = useState<number>(100)
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc')
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
   const [newTagName, setNewTagName] = useState('')
   const [newTagSlug, setNewTagSlug] = useState('')
@@ -53,7 +56,6 @@ export default function AdminPagesPage() {
         setTags(response.data)
         const allIds = (response.data as Tag[]).map(tag => tag.id)
         setAllTagIds(allIds)
-        setSelectedTagFilters([])
       }
     } catch (error) {
       console.error('获取标签失败:', error)
@@ -64,15 +66,68 @@ export default function AdminPagesPage() {
   useEffect(() => {
     fetchTags()
   }, [fetchTags])
+  useEffect(() => {
+    if (hasInitializedFromQuery.current) return
+    if (typeof window === 'undefined') return
+    const stored = window.sessionStorage.getItem(storageKey)
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        if (parsed.currentPage) setCurrentPage(parsed.currentPage)
+        if (parsed.pageSize) setPageSize(parsed.pageSize)
+        if (parsed.filter) setFilter(parsed.filter)
+        if (parsed.sortOrder) setSortOrder(parsed.sortOrder)
+        if (parsed.searchTerm) {
+          setSearchTerm(parsed.searchTerm)
+          setDebouncedSearchTerm(parsed.searchTerm)
+        }
+        if (Array.isArray(parsed.selectedTagFilters)) {
+          setSelectedTagFilters(parsed.selectedTagFilters)
+        }
+        if (parsed.includeNoTagsFilter) {
+          setIncludeNoTagsFilter(true)
+        }
+      } catch (error) {
+        console.error('读取页面列表缓存失败:', error)
+      }
+    }
+
+    hasInitializedFromQuery.current = true
+  }, [storageKey])
+
+  useEffect(() => {
+    if (!hasInitializedFromQuery.current) return
+    if (typeof window === 'undefined') return
+    const snapshot = {
+      currentPage,
+      pageSize,
+      filter,
+      sortOrder,
+      searchTerm: debouncedSearchTerm,
+      selectedTagFilters,
+      includeNoTagsFilter
+    }
+    window.sessionStorage.setItem(storageKey, JSON.stringify(snapshot))
+  }, [
+    currentPage,
+    pageSize,
+    filter,
+    sortOrder,
+    debouncedSearchTerm,
+    selectedTagFilters,
+    includeNoTagsFilter,
+    storageKey
+  ])
 
   // 防抖搜索
   useEffect(() => {
+    if (searchTerm === debouncedSearchTerm) return
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm)
       setCurrentPage(1)
     }, 500)
     return () => clearTimeout(timer)
-  }, [searchTerm])
+  }, [searchTerm, debouncedSearchTerm])
 
   // 获取页面数据
   const fetchPages = useCallback(async () => {
@@ -107,7 +162,13 @@ export default function AdminPagesPage() {
           filteredPages = filteredPages.filter(page => !page.published)
         }
 
-        setPages(filteredPages)
+        const sortedPages = [...filteredPages].sort((a, b) => {
+          const left = new Date(a.created_at || 0).getTime()
+          const right = new Date(b.created_at || 0).getTime()
+          if (sortOrder === 'asc') return left - right
+          return right - left
+        })
+        setPages(sortedPages)
         setTotalPages(response.meta?.total_pages || 1)
       } else {
         console.error('API响应失败:', response)
@@ -123,11 +184,11 @@ export default function AdminPagesPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [currentPage, debouncedSearchTerm, filter, selectedTagFilters, includeNoTagsFilter, pageSize])
+  }, [currentPage, debouncedSearchTerm, filter, selectedTagFilters, includeNoTagsFilter, pageSize, sortOrder])
 
   useEffect(() => {
     fetchPages()
-  }, [currentPage, debouncedSearchTerm, filter, selectedTagFilters, includeNoTagsFilter, pageSize, fetchPages])
+  }, [currentPage, debouncedSearchTerm, filter, selectedTagFilters, includeNoTagsFilter, pageSize, sortOrder, fetchPages])
 
   useEffect(() => {
     if (pages.length === 0 && isLoading) {
@@ -335,6 +396,21 @@ export default function AdminPagesPage() {
               </div>
 
               <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-700 dark:text-gray-300">排序</span>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => {
+                    setSortOrder(e.target.value as 'asc' | 'desc')
+                    setCurrentPage(1)
+                  }}
+                  className="border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-tech-dark text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-tech-accent focus:border-transparent"
+                >
+                  <option value="desc">创建时间（新 → 旧）</option>
+                  <option value="asc">创建时间（旧 → 新）</option>
+                </select>
+              </div>
+
+              <div className="flex items-center space-x-2">
                 <button
                   type="button"
                   onClick={() => setIsTagFilterModalOpen(true)}
@@ -360,9 +436,9 @@ export default function AdminPagesPage() {
                   }}
                   className="border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-tech-dark text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-tech-accent focus:border-transparent"
                 >
-                  <option value="10">10 条</option>
-                  <option value="30">30 条</option>
                   <option value="100">100 条</option>
+                  <option value="300">300 条</option>
+                  <option value="500">500 条</option>
                 </select>
               </div>
             </div>
@@ -738,6 +814,14 @@ export default function AdminPagesPage() {
     </AdminLayout>
   )
 }
+
+
+
+
+
+
+
+
 
 
 
