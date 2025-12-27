@@ -86,15 +86,6 @@ export const renderImageTextHorizontal = (component: any): string => {
   )
 }
 
-export const renderContentSection = (component: any): string => {
-  const { props = {} } = component
-  const { title, subtitle, content } = props
-  return wrapSection(
-    'content-section',
-    `${renderHeading('h2', title)}${renderParagraph(subtitle)}${content ? `<div class="content-body">${content}</div>` : ''}`
-  )
-}
-
 export const renderBannerCarousel = (component: any): string => {
   const { props = {} } = component
   const {

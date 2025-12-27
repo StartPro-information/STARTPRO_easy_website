@@ -16,6 +16,8 @@ import { TextFieldsEditor } from './editors/common/TextFieldsEditor'
 import { MediaPickerField } from './editors/common/MediaPickerField'
 import { IconColorControls } from './editors/common/IconColorControls'
 import { CyberEffectsEditor } from './editors/common/CyberEffectsEditor'
+import AiAssistModal from './AiAssistModal'
+import { aiApi } from '@/utils/api'
 
 interface ComponentEditorProps {
   component: TemplateComponent
@@ -52,10 +54,7 @@ const ICON_COLOR_COMPONENTS = new Set([
   'feature-grid-large',
   'stats-section',
   'timeline',
-  'cyber-timeline',
-  'service-grid',
-  'premium-feature-grid',
-  'premium-stats'
+  'cyber-timeline'
 ])
 const DEFAULT_ICON_COLOR = '#0ea5e9'
 
@@ -67,6 +66,8 @@ const ComponentEditor = ({
   const componentDefinition = componentDefinitions.find(def => def.type === component.type);
   const [formData, setFormData] = useState<any>(component.props)
   const supportsIconColorControls = ICON_COLOR_COMPONENTS.has(component.type)
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false)
+  const [isAiGenerating, setIsAiGenerating] = useState(false)
 
   useEffect(() => {
     setFormData(component.props)
@@ -181,6 +182,35 @@ const ComponentEditor = ({
     'buttonColorMode',
     'customButtonColor'
   ]
+  const AI_COMPONENT_TYPES = new Set<string>([
+    'hero',
+    'text-block',
+    'image-block',
+    'image-text',
+    'image-text-horizontal',
+    'banner-carousel',
+    'table',
+    'feature-grid',
+    'feature-grid-large',
+    'pricing-cards',
+    'contact-form',
+    'team-grid',
+    'call-to-action',
+    'faq-section',
+    'stats-section',
+    'timeline',
+    'testimonials',
+    'news-list',
+    'logo-wall',
+    'logo-scroll',
+    'link-block',
+    'video-player',
+    'raw-html',
+    'product-showcase-card',
+    'cyber-timeline',
+    'cyber-showcase',
+    'cyber-super-card'
+  ])
   const fieldSkipMap: Record<string, Set<string>> = {
     'cyber-showcase': new Set(['title', 'description'])
   }
@@ -316,6 +346,49 @@ const ComponentEditor = ({
     })
   }
 
+  const handleAiGenerate = async (prompt: string) => {
+    if (!prompt.trim()) return
+    setIsAiGenerating(true)
+    try {
+      const response = await aiApi.generate({
+        componentType: component.type,
+        templateType: 'generate_props',
+        userPrompt: prompt.trim(),
+        currentProps: formData
+      })
+      if (!response.success) {
+        toast.error(response.message || 'AI 生成失败')
+        return
+      }
+
+      const data = (response as any).data || {}
+      if (data.props && typeof data.props === 'object') {
+        const next = { ...formData, ...data.props }
+        setFormData(next)
+        onUpdate(next)
+        toast.success('AI 内容已应用')
+        setIsAiModalOpen(false)
+        return
+      }
+
+      if (data.text && component.type === 'text-block') {
+        const next = { ...formData, content: data.text }
+        setFormData(next)
+        onUpdate(next)
+        toast.success('AI 内容已应用')
+        setIsAiModalOpen(false)
+        return
+      }
+
+      toast.error('AI 返回内容无法应用到组件')
+    } catch (error) {
+      console.error('AI generate failed:', error)
+      toast.error('AI 生成失败')
+    } finally {
+      setIsAiGenerating(false)
+    }
+  }
+
   const getComponentName = (type: string) => {
     const def = componentDefinitions.find(d => d.type === type)
     return def?.name || '组件'
@@ -333,9 +406,20 @@ const ComponentEditor = ({
                 <p className="text-sm text-gray-600 dark:text-gray-400">编辑组件属性</p>
               </div>
             </div>
-            <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {AI_COMPONENT_TYPES.has(component.type) && (
+                <button
+                  type="button"
+                  onClick={() => setIsAiModalOpen(true)}
+                  className="px-3 py-1.5 rounded-lg bg-tech-accent text-white text-sm hover:bg-tech-secondary transition-colors"
+                >
+                  AI 生成
+                </button>
+              )}
+              <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -594,6 +678,13 @@ const ComponentEditor = ({
         initialSource={assetPickerSource}
         selectionMode={assetPickerMode}
        onSelectMultiple={assetPickerMode === 'multiple' ? handleMultiAssetSelect : undefined}
+      />
+      <AiAssistModal
+        isOpen={isAiModalOpen}
+        componentName={getComponentName(component.type)}
+        onClose={() => setIsAiModalOpen(false)}
+        onGenerate={handleAiGenerate}
+        isLoading={isAiGenerating}
       />
     </>
   )

@@ -1,6 +1,6 @@
 import { RenderMap } from '@/types/pageContent'
-import { renderHero, renderTextBlock, renderImageBlock, renderImageText, renderImageTextHorizontal, renderContentSection, renderBannerCarousel, renderTable } from './renderers/basic'
-import { renderFeatureGrid, renderFeatureGridLarge, renderServiceGrid, renderLogoWall, renderLogoScroll, renderLinkBlock } from './renderers/collections'
+import { renderHero, renderTextBlock, renderImageBlock, renderImageText, renderImageTextHorizontal, renderBannerCarousel, renderTable } from './renderers/basic'
+import { renderFeatureGrid, renderFeatureGridLarge, renderLogoWall, renderLogoScroll, renderLinkBlock } from './renderers/collections'
 import { renderPricingCards } from './renderers/pricing'
 import { renderTeamGrid, renderTestimonials } from './renderers/team'
 import { renderCallToAction } from './renderers/cta'
@@ -9,15 +9,6 @@ import { renderStatsSection, renderTimeline, renderCyberTimeline } from './rende
 import { renderCyberShowcase, renderCyberSuperCard } from './renderers/cyber'
 import { renderNewsList, renderVideoPlayer } from './renderers/newsVideo'
 import { renderRawHtml } from './renderers/rawHtml'
-import {
-  renderPremiumHero,
-  renderPremiumFeatureGrid,
-  renderPremiumStats,
-  renderPremiumTestimonials,
-  renderPremiumShowcase,
-  renderPremiumPartners,
-  renderPremiumPricing
-} from './renderers/premium'
 
 const renderers: RenderMap = {
   'hero': renderHero,
@@ -25,7 +16,6 @@ const renderers: RenderMap = {
   'image-block': renderImageBlock,
   'image-text': renderImageText,
   'image-text-horizontal': renderImageTextHorizontal,
-  'content-section': renderContentSection,
   'banner-carousel': renderBannerCarousel,
   'table': renderTable,
   'feature-grid': renderFeatureGrid,
@@ -42,19 +32,11 @@ const renderers: RenderMap = {
   'cyber-super-card': renderCyberSuperCard,
   'testimonials': renderTestimonials,
   'news-list': renderNewsList,
-  'service-grid': renderServiceGrid,
   'logo-wall': renderLogoWall,
   'logo-scroll': renderLogoScroll,
   'link-block': renderLinkBlock,
   'video-player': renderVideoPlayer,
-  'raw-html': renderRawHtml,
-  'premium-hero': renderPremiumHero,
-  'premium-feature-grid': renderPremiumFeatureGrid,
-  'premium-stats': renderPremiumStats,
-  'premium-testimonials': renderPremiumTestimonials,
-  'premium-showcase': renderPremiumShowcase,
-  'premium-partners': renderPremiumPartners,
-  'premium-pricing': renderPremiumPricing
+  'raw-html': renderRawHtml
 }
 
 export const generateHtmlFromComponents = (components: any[]): string => {

@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   FileText,
   Settings,
+  Sparkles,
   BarChart3,
   Upload,
   Menu,
@@ -81,6 +82,11 @@ const menuItems: MenuItem[] = [
     label: '通知记录',
     href: '/admin/notifications/messages',
     icon: <Inbox className="w-5 h-5" />
+  },
+  {
+    label: 'AI 接入',
+    href: '/admin/ai-settings',
+    icon: <Sparkles className="w-5 h-5" />
   },
   {
     label: '系统设置',
@@ -395,7 +401,6 @@ export default function AdminLayout({
     </>
   )
 }
-
 
 
 

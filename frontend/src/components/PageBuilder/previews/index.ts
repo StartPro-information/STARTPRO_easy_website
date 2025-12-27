@@ -15,8 +15,6 @@ import { CyberShowcasePreview } from './CyberShowcasePreview'
 import { CyberSuperCardPreview } from './CyberSuperCardPreview'
 import { NewsListPreview } from './NewsListPreview'
 import { BannerCarouselPreview } from './BannerCarouselPreview'
-import { ContentSectionPreview } from './ContentSectionPreview'
-import { ServiceGridPreview } from './ServiceGridPreview'
 import { LogoWallPreview } from './LogoWallPreview'
 import { ImageTextPreview } from './ImageTextPreview'
 import { ImageTextHorizontalPreview } from './ImageTextHorizontalPreview'
@@ -46,8 +44,6 @@ export {
   TestimonialsPreview,
   NewsListPreview,
   BannerCarouselPreview,
-  ContentSectionPreview,
-  ServiceGridPreview,
   LogoWallPreview,
   ImageTextPreview,
   ImageTextHorizontalPreview,
@@ -65,8 +61,6 @@ export const componentPreviews = {
   'text-block': TextBlockPreview,
   'image-text-horizontal': ImageTextHorizontalPreview,
   'image-block': ImageBlockPreview,
-  'content-section': ContentSectionPreview,
-  'service-grid': ServiceGridPreview,
   'feature-grid': FeatureGridPreview,
   'feature-grid-large': FeatureGridLargePreview,
   'pricing-cards': PricingCardsPreview,
@@ -89,12 +83,5 @@ export const componentPreviews = {
   'table': TablePreview,
   'video-player': VideoPlayerPreview,
   'raw-html': RawHtmlPreview,
-  'product-showcase-card': ProductShowcaseCardPreview,
-  'premium-hero': HeroPreview,
-  'premium-feature-grid': FeatureGridPreview,
-  'premium-stats': StatsSectionPreview,
-  'premium-testimonials': TestimonialsPreview,
-  'premium-showcase': ContentSectionPreview,
-  'premium-partners': TeamGridPreview,
-  'premium-pricing': PricingCardsPreview
+  'product-showcase-card': ProductShowcaseCardPreview
 }

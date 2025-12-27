@@ -14,18 +14,6 @@ export const renderFeatureGrid = (component: any): string => {
 
 export const renderFeatureGridLarge = renderFeatureGrid
 
-export const renderServiceGrid = (component: any): string => {
-  const { props = {} } = component
-  const { title, subtitle, services = [] } = props
-  const items = services
-    .map((s: any) => `<div class="service-card">
-      ${renderHeading('h3', s.title)}
-      ${renderParagraph(s.description)}
-    </div>`)
-    .join('')
-  return wrapSection('service-grid', `${renderHeading('h2', title)}${renderParagraph(subtitle)}<div class="service-grid__items">${items}</div>`)
-}
-
 export const renderLogoWall = (component: any): string => {
   const { props = {} } = component
   const { logos = [] } = props

@@ -2,16 +2,28 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import toast from 'react-hot-toast'
 import { ApiResponse, PaginatedResponse, PageContent, Doc } from '@/types'
 
-let accessToken: string | null = null
+const ACCESS_TOKEN_KEY = 'access_token'
+let accessToken: string | null =
+  typeof window !== 'undefined' ? window.localStorage.getItem(ACCESS_TOKEN_KEY) : null
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token
+  if (typeof window !== 'undefined') {
+    if (token) {
+      window.localStorage.setItem(ACCESS_TOKEN_KEY, token)
+    } else {
+      window.localStorage.removeItem(ACCESS_TOKEN_KEY)
+    }
+  }
 }
 
 export const getAccessToken = () => accessToken
 
 export const clearAccessToken = () => {
   accessToken = null
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem(ACCESS_TOKEN_KEY)
+  }
 }
 
 let refreshPromise: Promise<string> | null = null
@@ -303,6 +315,25 @@ export const tagsApi = {
     const response = await api.post(`/tags/page/${pageId}`, { tagIds })
     return response
   }
+}
+
+export const aiApi = {
+  getSettings: () => api.get('/ai/settings'),
+  updateSettings: (data: any) => api.put('/ai/settings', data),
+  testSettings: (profileId?: number | string) => api.post('/ai/settings/test', profileId ? { profileId } : {}),
+
+  listProfiles: () => api.get('/ai/settings/profiles'),
+  createProfile: (data: any) => api.post('/ai/settings/profiles', data),
+  updateProfile: (id: number | string, data: any) => api.put(`/ai/settings/profiles/${id}`, data),
+  deleteProfile: (id: number | string) => api.delete(`/ai/settings/profiles/${id}`),
+  setDefaultProfile: (id: number | string) => api.put(`/ai/settings/default/${id}`),
+
+  listTemplates: () => api.get('/ai/templates'),
+  createTemplate: (data: any) => api.post('/ai/templates', data),
+  updateTemplate: (id: number | string, data: any) => api.put(`/ai/templates/${id}`, data),
+  deleteTemplate: (id: number | string) => api.delete(`/ai/templates/${id}`),
+
+  generate: (data: any) => api.post('/ai/generate', data)
 }
 
 export const docsApi = {
