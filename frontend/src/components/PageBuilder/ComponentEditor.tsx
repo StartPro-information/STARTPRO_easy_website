@@ -212,7 +212,8 @@ const ComponentEditor = ({
     'cyber-super-card'
   ])
   const fieldSkipMap: Record<string, Set<string>> = {
-    'cyber-showcase': new Set(['title', 'description'])
+    'cyber-showcase': new Set(['title', 'description']),
+    'image-text': new Set(['imagePosition'])
   }
 
   const renderBasicFields = () => {
@@ -246,7 +247,7 @@ const ComponentEditor = ({
               {key === 'backgroundColorOption' && '背景模式'}
               {key === 'imagePosition' && '图片位置'}
               {key === 'imageHeightMode' && '图片高度模式'}
-              {key === 'alignment' && '对齐方式'}
+              {key === 'alignment' && '文字对齐方式'}
               {key === 'titleColorMode' && '标题颜色模式'}
               {key === 'customTitleColor' && '自定义标题颜色'}
               {key === 'subtitleColorMode' && '副标题颜色模式'}

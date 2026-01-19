@@ -257,13 +257,18 @@ export const imageComponents: ComponentDefinition[] = [
         image: '',
         imageWidthPercent: 100,
         layout: 'image-top',
-        imagePosition: 'center',
+        alignment: 'left',
         widthOption: 'full',
         backgroundColorOption: 'default'
       },
       editableFields: [
         { key: 'title', label: '标题', type: 'text', value: '' },
         { key: 'description', label: '描述', type: 'rich-text', value: '' },
+        { key: 'alignment', label: '文字对齐', type: 'text', value: 'left', options: [
+          { label: '左对齐', value: 'left' },
+          { label: '居中对齐', value: 'center' },
+          { label: '右对齐', value: 'right' }
+        ] },
         { key: 'image', label: '图片', type: 'image', value: '' },
         { key: 'layout', label: '布局方式', type: 'text', value: 'image-top', options: [
           { label: '图片在上', value: 'image-top' },

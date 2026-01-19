@@ -46,13 +46,7 @@ const Breadcrumbs = ({ items }: { items: { label: string; href?: string }[] }) =
     {items.map((item, idx) => (
       <React.Fragment key={item.href || item.label + idx}>
         {idx > 0 && <span>/</span>}
-        {item.href ? (
-          <a className="hover:text-[var(--color-text-primary)]" href={item.href}>
-            {item.label}
-          </a>
-        ) : (
-          <span className="text-[var(--color-text-primary)]">{item.label}</span>
-        )}
+        <span className={item.href ? '' : 'text-[var(--color-text-primary)]'}>{item.label}</span>
       </React.Fragment>
     ))}
   </nav>

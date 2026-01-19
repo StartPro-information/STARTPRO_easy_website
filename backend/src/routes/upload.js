@@ -2,6 +2,7 @@ const express = require('express')
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
+const crypto = require('crypto')
 const router = express.Router()
 const { authenticateToken, requireEditor } = require('../middleware/auth')
 const db = require('../config/database')
@@ -186,10 +187,28 @@ const decodeOriginalName = (name = '') => {
 }
 
 // 生成文件名 - 尽量保留原始文件名
-const generateFileName = (originalName = '') => {
+const generateFileName = (originalName = '', folderPath, targetDir) => {
   const decodedName = decodeOriginalName(originalName)
+  const cleaned = decodedName.replace(/[/\\]/g, '_')
   // 简单清理文件名，移除路径遍历字符，但保留原始名称
-  return decodedName.replace(/[/\\]/g, '_') // 替换路径分隔符为下划线
+  if (folderPath !== 'docsPhoto') {
+    return cleaned
+  }
+
+  const ext = path.extname(cleaned)
+  const base = cleaned.slice(0, cleaned.length - ext.length).replace(/[^\w.-]+/g, '_') || 'upload'
+  const baseDir = targetDir || uploadsDir
+
+  let filename = ''
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const suffix = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`
+    filename = `${base}-${suffix}${ext}`
+    if (!fs.existsSync(path.join(baseDir, filename))) {
+      return filename
+    }
+  }
+
+  return filename || `${base}-${Date.now()}${ext}`
 }
 
 // 生成文件URL
@@ -273,7 +292,9 @@ const imageStorage = multer.diskStorage({
     cb(null, destinationDir)
   },
   filename: (req, file, cb) => {
-    cb(null, generateFileName(file.originalname))
+    const folder = req.body.folder || 'root'
+    const destinationDir = getFileTypeDir(file.mimetype, folder)
+    cb(null, generateFileName(file.originalname, folder, destinationDir))
   }
 })
 
@@ -285,7 +306,9 @@ const fileStorage = multer.diskStorage({
     cb(null, destinationDir)
   },
   filename: (req, file, cb) => {
-    cb(null, generateFileName(file.originalname))
+    const folder = req.body.folder || 'root'
+    const destinationDir = getFileTypeDir(file.mimetype, folder)
+    cb(null, generateFileName(file.originalname, folder, destinationDir))
   }
 })
 

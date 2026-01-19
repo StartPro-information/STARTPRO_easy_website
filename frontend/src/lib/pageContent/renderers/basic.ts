@@ -61,13 +61,16 @@ export const renderImageBlock = (component: any): string => {
 
 export const renderImageText = (component: any): string => {
   const { props = {} } = component
-  const { title, content, image, imageAlt, align } = props
+  const { title, description, content, image, imageAlt, align, alignment = 'left' } = props
   const imagePart = image
     ? `<div class="image-text__image"><img src="${escapeHtml(image)}" alt="${escapeHtml(imageAlt || '')}" /></div>`
     : ''
+  const textAlign = alignment === 'center' ? 'center' : alignment === 'right' ? 'right' : 'left'
+  const textContent = content || description
+  const textBlock = `${renderHeading('h2', title)}${renderParagraph(textContent)}`
   return wrapSection(
     `image-text ${align === 'right' ? 'image-right' : 'image-left'}`,
-    `${renderHeading('h2', title)}${renderParagraph(content)}${imagePart}`
+    `<div class="image-text__content" style="text-align:${textAlign}">${textBlock}</div>${imagePart}`
   )
 }
 

@@ -7,6 +7,7 @@ export const ImageTextPreview: React.FC<{ component: TemplateComponent }> = ({ c
     description = '这是一段描述文字，用来展示图文组件的内容。',
     image = '',
     imageWidthPercent = 100,
+    alignment = 'left',
     widthOption = 'full',
     backgroundColorOption = 'default'
   } = component.props || {}
@@ -59,12 +60,13 @@ export const ImageTextPreview: React.FC<{ component: TemplateComponent }> = ({ c
 
   const textPaddingClass = widthOption === 'full' ? 'px-4 md:px-6 lg:px-8' : 'px-8'
   const imagePaddingClass = widthOption === 'full' ? 'px-4 md:px-6 lg:px-8 pb-8' : 'px-8 pb-8'
+  const alignClass = alignment === 'center' ? 'text-center' : alignment === 'right' ? 'text-right' : 'text-left'
 
   return (
     <div className={containerClass}>
       <div className={componentClass}>
         <div className="w-full">
-          <div className={`${textPaddingClass} pt-8 pb-4 text-left`}>
+          <div className={`${textPaddingClass} pt-8 pb-4 ${alignClass}`}>
             <h2 className="text-3xl font-bold text-text-primary mb-4">{title}</h2>
             <p className="text-text-secondary leading-relaxed whitespace-pre-line">{description}</p>
           </div>
