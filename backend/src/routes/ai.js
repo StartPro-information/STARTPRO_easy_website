@@ -161,9 +161,18 @@ const interpolateTemplate = (template, vars) => {
   })
 }
 
+const stripJsonFence = (raw) => {
+  if (typeof raw !== 'string') return ''
+  const trimmed = raw.trim()
+  if (!trimmed) return ''
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)
+  return fenced ? fenced[1].trim() : trimmed
+}
+
 const parseJsonSafe = (raw) => {
   try {
-    return { ok: true, value: JSON.parse(raw) }
+    const normalized = stripJsonFence(raw)
+    return { ok: true, value: JSON.parse(normalized) }
   } catch (error) {
     return { ok: false, error }
   }

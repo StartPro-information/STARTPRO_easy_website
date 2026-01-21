@@ -189,12 +189,12 @@ export const ProductShowcaseCardPreview: React.FC<{ component: TemplateComponent
                   transition={{ duration: 0.5 }}
                 >
                   <div className="absolute inset-x-6 md:inset-x-16 bottom-0 h-20 bg-gradient-to-t from-black/8 via-primary/6 to-transparent blur-3xl pointer-events-none" />
-                  <div className="relative w-full max-w-4xl h-[260px] md:h-[300px] flex items-end justify-center">
+                  <div className="relative w-full max-w-4xl flex items-end justify-center">
                     {card.image ? (
                       <img
                         src={card.image}
                         alt={card.title || '产品图片'}
-                        className="w-full h-full object-contain"
+                        className="w-full h-auto object-contain"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
                           target.style.display = 'none'

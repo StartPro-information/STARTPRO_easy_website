@@ -119,7 +119,7 @@ export const CyberShowcasePreview: React.FC<{ component: TemplateComponent }> = 
     }
   }, [activeIndex, showcaseControls.length])
 
-  const containerClass = widthOption === 'standard' ? 'max-w-screen-xl mx-auto' : 'w-full'
+  const containerClass = widthOption === 'standard' ? 'max-w-screen-2xl mx-auto' : 'w-full'
   const variantClass =
     backgroundColorOption === 'transparent' ? 'cyber-showcase--transparent' : 'cyber-showcase--default'
   const positionClass = imagePosition === 'left' ? 'is-image-left' : 'is-image-right'
