@@ -16,6 +16,7 @@ import RawHtmlEditor from './RawHtmlEditor'
 import VideoEditor from './VideoEditor'
 import TableEditorLauncher from './TableEditorLauncher'
 import ProductShowcaseCardEditor from './ProductShowcaseCardEditor'
+import TextBlockEditor from './TextBlockEditor'
 
 export type CustomEditorProps = {
   component: TemplateComponent
@@ -435,6 +436,20 @@ const renderRawHtmlEditor: CustomEditorRenderer = ({
   )
 }
 
+const renderTextBlockEditor: CustomEditorRenderer = ({
+  component,
+  formData,
+  handleFieldChange
+}) => {
+  if (component.type !== 'text-block') return null
+  return (
+    <TextBlockEditor
+      content={formData.content}
+      onContentChange={(value) => handleFieldChange('content', value)}
+    />
+  )
+}
+
 const customEditors: Partial<Record<string, CustomEditorRenderer>> = {
   'video-player': renderVideoEditor,
   'banner-carousel': renderBannerCarouselEditor,
@@ -450,6 +465,7 @@ const customEditors: Partial<Record<string, CustomEditorRenderer>> = {
   'table': renderTableEditor,
   'image-text': renderImageTextEditor,
   'image-text-horizontal': renderImageTextHorizontalEditor,
+  'text-block': renderTextBlockEditor,
   'raw-html': renderRawHtmlEditor,
   'product-showcase-card': renderProductShowcaseCardEditor
 }

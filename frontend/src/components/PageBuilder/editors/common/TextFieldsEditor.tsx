@@ -5,6 +5,7 @@ interface TextFieldsEditorProps {
   formData: any
   editableFields?: EditableField[]
   onChange: (key: string, value: any) => void
+  excludeKeys?: string[]
 }
 
 const FIELD_CONFIG: Array<{
@@ -25,11 +26,13 @@ const FIELD_CONFIG: Array<{
 export const TextFieldsEditor: React.FC<TextFieldsEditorProps> = ({
   formData,
   editableFields,
-  onChange
+  onChange,
+  excludeKeys = []
 }) => {
   const editableKeys = new Set(editableFields?.map(f => f.key))
+  const excluded = new Set(excludeKeys)
   const shouldRenderKey = (key: string) =>
-    Object.prototype.hasOwnProperty.call(formData, key) || editableKeys.has(key)
+    (Object.prototype.hasOwnProperty.call(formData, key) || editableKeys.has(key)) && !excluded.has(key)
 
   return (
     <div className="space-y-4">

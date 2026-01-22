@@ -89,6 +89,8 @@ export default function Layout({
     [activeTheme, backgroundPreference]
   )
   const isStarfield = resolvedBackground?.type === 'starfield'
+  const isThemeDefaultBg = backgroundPreference === 'theme-default'
+  const backgroundEffect = isThemeDefaultBg ? undefined : resolvedBackground
 
   const siteName = settings?.site_name || ''
   const siteDescription = description || settings?.site_description || ''
@@ -173,9 +175,9 @@ export default function Layout({
       </Head>
 
       <div
-        className={`layout-container relative min-h-screen overflow-hidden text-theme-text ${!isStarfield ? 'bg-semantic-mutedBg' : ''} ${className}`}
+        className={`layout-container relative min-h-screen overflow-hidden text-theme-text ${!isStarfield ? 'bg-semantic-mutedBg' : ''} ${isThemeDefaultBg ? 'layout-default-bg' : ''} ${className}`}
       >
-        <BackgroundRenderer effect={resolvedBackground} />
+        <BackgroundRenderer effect={backgroundEffect} />
 
         <div className="relative z-10 min-h-screen">
           <ThemeAwareHeader {...finalHeaderProps} />

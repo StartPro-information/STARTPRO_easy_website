@@ -9,20 +9,14 @@ export const textComponents: ComponentDefinition[] = [
       icon: '📝',
       category: '文本组件',
       defaultProps: {
-        title: '区块标题',
-        content: '这里是文本内容...',
+        title: '',
+        content: '',
         alignment: 'left',
         widthOption: 'full',
         backgroundColorOption: 'default'
       },
       editableFields: [
-        { key: 'title', label: '标题', type: 'text', value: '' },
         { key: 'content', label: '内容', type: 'rich-text', value: '' },
-        { key: 'alignment', label: '对齐方式', type: 'text', value: 'left', options: [
-          { label: '左对齐', value: 'left' },
-          { label: '居中对齐', value: 'center' },
-          { label: '右对齐', value: 'right' }
-        ] },
         { key: 'widthOption', label: '宽度选项', type: 'text', value: 'full', options: [
           { label: '全宽', value: 'full' },
           { label: '标准宽度', value: 'standard' }

@@ -1,3 +1,4 @@
+import { marked } from 'marked'
 import { escapeHtml, renderHeading, renderParagraph, wrapSection } from '../utils'
 
 export const renderHero = (component: any): string => {
@@ -32,11 +33,25 @@ export const renderHero = (component: any): string => {
 
 export const renderTextBlock = (component: any): string => {
   const { props = {} } = component
-  const { title, content, alignment = 'left' } = props
+  const {
+    title,
+    content,
+    alignment = 'left',
+    widthOption = 'full',
+    backgroundColorOption = 'default'
+  } = props
   const alignClass = alignment ? ` align-${alignment}` : ''
+  const rawContent = typeof content === 'string' ? content.trim() : ''
+  const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(rawContent)
+  const htmlContent = rawContent ? (looksLikeHtml ? rawContent : marked.parse(rawContent)) : ''
+  const widthClass = widthOption === 'standard' ? 'text-block__inner text-block__inner--standard' : 'text-block__inner'
+  const panelClass =
+    backgroundColorOption === 'transparent' ? 'text-block__panel text-block__panel--transparent' : 'text-block__panel text-block__panel--default'
   return wrapSection(
     `text-block${alignClass}`,
-    `${renderHeading('h2', title)}${content ? `<div class="text-body">${content}</div>` : ''}`
+    `<div class="${widthClass}"><div class="${panelClass}">${renderHeading('h2', title)}${
+      htmlContent ? `<div class="text-body prose prose-lg max-w-none">${htmlContent}</div>` : ''
+    }</div></div>`
   )
 }
 

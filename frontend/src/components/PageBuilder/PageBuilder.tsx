@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { DndProvider, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -23,6 +23,9 @@ import { DragTypes } from './dragTypes'
 import { componentPreviews } from './previews'
 import { componentDefinitions } from '@/lib/templates'
 import ComponentEditor from '@/components/PageBuilder/ComponentEditor'
+import { useSettings } from '@/contexts/SettingsContext'
+import { getThemeById, defaultTheme, resolveBackgroundEffect, type ThemeBackgroundChoice } from '@/styles/themes'
+import BackgroundRenderer from '@/components/theme-backgrounds/BackgroundRenderer'
 
 interface PageBuilderProps {
   initialTemplate?: PageTemplate
@@ -45,7 +48,16 @@ const PageBuilder: React.FC<PageBuilderProps> = ({
   const [previewMode, setPreviewMode] = useState(false)
   const [deviceMode, setDeviceMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
 
-  const canvasBackgroundStyle = { backgroundColor: 'var(--color-background)' }
+  const { settings } = useSettings()
+  const activeTheme = useMemo(() => getThemeById(settings?.site_theme || defaultTheme.id), [settings?.site_theme])
+  const backgroundPreference: ThemeBackgroundChoice = (settings?.theme_background || 'theme-default') as ThemeBackgroundChoice
+  const resolvedBackground = useMemo(
+    () => resolveBackgroundEffect(activeTheme, backgroundPreference),
+    [activeTheme, backgroundPreference]
+  )
+  const isThemeDefaultBg = backgroundPreference === 'theme-default'
+  const backgroundEffect = isThemeDefaultBg ? undefined : resolvedBackground
+  const canvasBackgroundClass = isThemeDefaultBg ? 'layout-default-bg' : 'bg-transparent'
   const surfaceStyle = {
     backgroundColor: 'var(--semantic-panel-bg, var(--color-surface))',
     borderColor: 'var(--semantic-panel-border, var(--color-border))'
@@ -182,7 +194,6 @@ const PageBuilder: React.FC<PageBuilderProps> = ({
     <DndProvider backend={HTML5Backend}>
       <div
         className="flex h-[calc(100vh-64px)]"
-        style={canvasBackgroundStyle}
       >
         {/* 左侧组件库 */}
         {!previewMode && (
@@ -287,10 +298,12 @@ const PageBuilder: React.FC<PageBuilderProps> = ({
 
           {/* 页面编辑区域 */}
           <div
-            className="flex-1 overflow-y-auto p-4 pb-40"
-            style={canvasBackgroundStyle}
+            className={`relative isolate flex-1 overflow-y-auto p-4 pb-40 ${canvasBackgroundClass}`}
           >
-            <div style={getDeviceStyles()}>
+            <div className="pagebuilder-background absolute inset-0 pointer-events-none">
+              <BackgroundRenderer effect={backgroundEffect} />
+            </div>
+            <div style={getDeviceStyles()} className="relative z-10">
               <PageDropZone
               components={components}
               selectedComponent={selectedComponent}

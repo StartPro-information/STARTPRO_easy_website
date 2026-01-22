@@ -1,0 +1,219 @@
+.text-block.align-center,
+.text-block.align-center .text-body {
+  text-align: center;
+}
+
+.text-block.align-right,
+.text-block.align-right .text-body {
+  text-align: right;
+}
+
+.text-block .text-body,
+.text-block-content {
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+}
+
+.text-block {
+  width: 100%;
+}
+
+.text-block__inner {
+  width: 100%;
+}
+
+.text-block__inner--standard {
+  max-width: 96rem;
+  margin: 0 auto;
+}
+
+.text-block__panel {
+  border-radius: 0.75rem;
+  padding: clamp(0.95rem, 2.2vw, 1.5rem);
+  padding-top: clamp(0.75rem, 1.8vw, 1.1rem);
+}
+
+.text-block__panel--default {
+  background: var(--color-surface, #0f172a);
+}
+
+.text-block__panel--transparent {
+  background: transparent;
+}
+
+
+.text-block .text-body h1,
+.text-block-content h1,
+.text-block-editor-modal .ck-content h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 1rem;
+}
+
+.text-block .text-body h2,
+.text-block-content h2,
+.text-block-editor-modal .ck-content h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 1.25rem 0 0.75rem;
+}
+
+.text-block .text-body h3,
+.text-block-content h3,
+.text-block-editor-modal .ck-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 1rem 0 0.5rem;
+}
+
+.text-block .text-body ul,
+.text-block .text-body ol,
+.text-block-content ul,
+.text-block-content ol,
+.text-block-editor-modal .ck-content ul,
+.text-block-editor-modal .ck-content ol {
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.text-block .text-body ul,
+.text-block-content ul,
+.text-block-editor-modal .ck-content ul {
+  list-style: disc;
+}
+
+.text-block .text-body ol,
+.text-block-content ol,
+.text-block-editor-modal .ck-content ol {
+  list-style: decimal;
+}
+
+.text-block .text-body ul.todo-list,
+.text-block-content ul.todo-list,
+.text-block-editor-modal .ck-content ul.todo-list {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+.text-block .text-body ul.todo-list > li,
+.text-block-content ul.todo-list > li,
+.text-block-editor-modal .ck-content ul.todo-list > li,
+.text-block-editor-modal .ck-content .todo-list__item {
+  list-style: none;
+  padding-left: 0;
+}
+
+.text-block .text-body ul.todo-list > li::marker,
+.text-block-content ul.todo-list > li::marker,
+.text-block-editor-modal .ck-content ul.todo-list > li::marker {
+  content: '';
+}
+
+.text-block .text-body .todo-list__label,
+.text-block-content .todo-list__label,
+.text-block-editor-modal .ck-content .todo-list__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.text-block .text-body .todo-list__label input[type='checkbox'],
+.text-block-content .todo-list__label input[type='checkbox'],
+.text-block-editor-modal .ck-content .todo-list__label input[type='checkbox'] {
+  margin: 0;
+}
+
+.text-block .text-body a,
+.text-block-content a,
+.text-block-editor-modal .ck-content a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+}
+
+.text-block .text-body pre,
+.text-block-content pre,
+.text-block-editor-modal .ck-content pre {
+  background: rgba(var(--color-text-muted-rgb), 0.08);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  overflow: auto;
+}
+
+.text-block .text-body code,
+.text-block-content code,
+.text-block-editor-modal .ck-content code {
+  font-family: 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.95em;
+}
+
+/* Ensure CKEditor content keeps the same formatting even after its CSS loads. */
+.text-block-editor-modal .ck-content h1 {
+  font-size: 2.25rem !important;
+  font-weight: 700 !important;
+  color: var(--color-text-primary) !important;
+  margin: 0 0 1rem !important;
+}
+
+.text-block-editor-modal .ck-content h2 {
+  font-size: 1.8rem !important;
+  font-weight: 700 !important;
+  color: var(--color-text-primary) !important;
+  margin: 1.25rem 0 0.75rem !important;
+}
+
+.text-block-editor-modal .ck-content h3 {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  color: var(--color-text-primary) !important;
+  margin: 1rem 0 0.5rem !important;
+}
+
+.text-block-editor-modal .ck-content ul,
+.text-block-editor-modal .ck-content ol {
+  padding-left: 1.5rem !important;
+  margin: 0.75rem 0 !important;
+}
+
+.text-block-editor-modal .ck-content ul {
+  list-style: disc !important;
+}
+
+.text-block-editor-modal .ck-content ol {
+  list-style: decimal !important;
+}
+
+.text-block-editor-modal .ck-content a {
+  color: var(--color-accent) !important;
+  text-decoration: underline !important;
+  text-decoration-color: var(--color-accent) !important;
+}
+
+.text-block-editor-modal .ck-content pre {
+  background: rgba(var(--color-text-muted-rgb), 0.08) !important;
+  border-radius: 0.75rem !important;
+  padding: 1rem 1.25rem !important;
+  overflow: auto !important;
+}
+
+.text-block-editor-modal .ck-content code {
+  font-family: 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace !important;
+  font-size: 0.95em !important;
+}
+
+/* Hide CKEditor title root if present so the editor starts directly with body text. */
+.text-block-editor-modal .ck-editor__editable[data-root='title'],
+.text-block-editor-modal .ck-editor__editable[aria-label='Title'] {
+  display: none !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.text-block-editor-modal .ck-editor__editable[data-root='main'] {
+  min-height: 320px;
+}

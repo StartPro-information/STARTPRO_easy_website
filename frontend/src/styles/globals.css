@@ -89,7 +89,7 @@ html {
 
 body {
   color: var(--color-text-primary);
-  background-color: var(--color-background);
+  background-color: var(--color-surface-alt, var(--color-background));
   /* 只让 html 承担滚动，避免 body 自己再产生一条滚动条 */
   overflow: visible !important;
 }
@@ -228,16 +228,6 @@ main.main-content {
   animation-delay: 2s;
 }
 
-.text-block.align-center,
-.text-block.align-center .text-body {
-  text-align: center;
-}
-
-.text-block.align-right,
-.text-block.align-right .text-body {
-  text-align: right;
-}
-
 /* 高级动画效果 */
 @keyframes fadeInUp {
   from {
@@ -300,7 +290,7 @@ main.main-content {
 
 /* 页脚样式 - 基于模板的全新设计*/
 .footer-container {
-  background-color: var(--color-background);
+  background-color: var(--color-surface-alt, var(--color-background));
   border-top: 1px solid rgba(var(--color-text-muted-rgb), 0.1);
   position: relative;
   overflow: hidden;
@@ -380,8 +370,16 @@ main.main-content {
 
 /* 内容区域样式 */
 .content-container {
-  background-color: var(--color-background);
+  background-color: var(--color-surface-alt, var(--color-background));
   min-height: calc(100vh - 250px);
+}
+
+.layout-default-bg {
+  background-color: var(--color-background);
+}
+
+.pagebuilder-background .-z-10 {
+  z-index: 0 !important;
 }
 
 .theme-input {

@@ -213,7 +213,8 @@ const ComponentEditor = ({
   ])
   const fieldSkipMap: Record<string, Set<string>> = {
     'cyber-showcase': new Set(['title', 'description']),
-    'image-text': new Set(['imagePosition'])
+    'image-text': new Set(['imagePosition']),
+    'text-block': new Set(['alignment'])
   }
 
   const renderBasicFields = () => {
@@ -429,6 +430,7 @@ const ComponentEditor = ({
             formData={formData}
             editableFields={componentDefinition?.editableFields}
             onChange={handleFieldChange}
+            excludeKeys={component.type === 'text-block' ? ['content', 'title'] : undefined}
           />
           {renderBasicFields()}
           <WidthBackgroundEditor

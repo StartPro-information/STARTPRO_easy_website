@@ -184,6 +184,8 @@ export default function AdminLayout({
     () => resolveBackgroundEffect(activeTheme, backgroundPreference),
     [activeTheme, backgroundPreference]
   )
+  const isThemeDefaultBg = backgroundPreference === 'theme-default'
+  const backgroundEffect = isThemeDefaultBg ? undefined : resolvedBackground
   const isMenuActive = (href: string) => {
     if (href === '/admin/dashboard') {
       return router.pathname === '/admin/dashboard'
@@ -229,10 +231,14 @@ export default function AdminLayout({
       </Head>
 
       <div className="relative min-h-screen overflow-hidden">
-        <BackgroundRenderer effect={resolvedBackground} />
-        <div className="admin-shell relative z-990 min-h-screen bg-semantic-mutedBg text-theme-text transition-colors">
+        <BackgroundRenderer effect={backgroundEffect} />
+        <div
+          className={`admin-shell relative z-990 min-h-screen text-theme-text transition-colors ${
+            isThemeDefaultBg ? 'bg-semantic-mutedBg' : 'bg-transparent'
+          }`}
+        >
         {/* 侧边栏*/}
-        <div className="fixed inset-y-0 left-0 z-50 w-64 bg-semantic-panel transform transition-transform duration-300 lg:translate-x-0">
+        <div className="fixed inset-y-0 left-0 z-50 w-64 bg-transparent transform transition-transform duration-300 lg:translate-x-0">
           {/* Logo区域 */}
           <div className="flex items-center justify-between h-16 px-6">
               <Link href="/admin/dashboard" className="flex items-center space-x-3">
@@ -286,7 +292,7 @@ export default function AdminLayout({
         {/* 涓诲唴瀹瑰尯鍩?*/}
         <div className="lg:pl-64">
           {/* 顶部导航栏*/}
-          <header className="bg-semantic-panel h-16 shadow-sm relative z-999">
+          <header className="bg-transparent h-16 shadow-sm relative z-999">
             <div className="flex items-center justify-between h-full px-6">
               {/* 移动端菜单按钮*/}
               <button
@@ -401,10 +407,6 @@ export default function AdminLayout({
     </>
   )
 }
-
-
-
-
 
 
 

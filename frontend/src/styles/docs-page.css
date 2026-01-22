@@ -26,9 +26,6 @@
   color: var(--color-text-primary, #e5e7eb);
   transition: background 0.25s ease, color 0.25s ease;
 }
-html, body {
-  background: var(--color-surface, #0f141d);
-}
 .doc-layout {
   width: 100%;
   max-width: none;
@@ -609,4 +606,10 @@ html, body {
     background: rgba(0, 0, 0, 0.3);
     z-index: 10;
   }
+}
+.docs-shell {
+  min-height: 100vh;
+  background: var(--color-surface, #0f141d);
+  color: var(--color-text-primary, #e5e7eb);
+  transition: background 0.25s ease, color 0.25s ease;
 }

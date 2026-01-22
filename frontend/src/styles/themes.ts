@@ -307,9 +307,22 @@ const cloneTheme = (theme: ColorTheme): ColorTheme => JSON.parse(JSON.stringify(
 
 const normalizeCustomThemePalette = (palette?: Partial<CustomThemePalette> | null): CustomThemePalette => {
   if (!palette) return { ...DEFAULT_CUSTOM_THEME_PALETTE }
+  const sanitized: Partial<CustomThemePalette> = {}
+  Object.entries(palette).forEach(([key, value]) => {
+    if (typeof value === 'string') {
+      const trimmed = value.trim()
+      if (trimmed) {
+        ;(sanitized as any)[key] = trimmed
+      }
+      return
+    }
+    if (value !== undefined && value !== null) {
+      ;(sanitized as any)[key] = value
+    }
+  })
   return {
     ...DEFAULT_CUSTOM_THEME_PALETTE,
-    ...palette
+    ...sanitized
   }
 }
 
