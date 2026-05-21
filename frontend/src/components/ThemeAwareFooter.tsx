@@ -202,7 +202,7 @@ export default function ThemeAwareFooter({
   const getSectionGridClass = (count: number) => {
     if (count <= 0) return 'grid-cols-1 place-items-center'
     if (count === 1) return 'grid-cols-1 place-items-center max-w-xs mx-auto'
-    if (count === 2) return 'grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto place-items-center'
+    if (count === 2) return 'grid-cols-1 sm:grid-cols-2 w-full items-start justify-items-start sm:gap-x-20'
     if (count === 3) return 'grid-cols-1 sm:grid-cols-3'
     if (count === 4) return 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4'
     if (count <= 6) return 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
@@ -211,6 +211,8 @@ export default function ThemeAwareFooter({
   }
 
   const sectionGridClass = getSectionGridClass(navigationSections.length)
+  const hasSocialSectionContent = !!(socialSection && socialLinksToRender.length > 0)
+  const navigationColumnClass = hasSocialSectionContent ? 'lg:col-span-6' : 'lg:col-span-9'
 
   const brandInfo = hasExplicitFooterLayout
     ? (providedFooterLayout?.brand || { name: '', description: '', logo: '' })
@@ -341,7 +343,7 @@ export default function ThemeAwareFooter({
               </div>
             </div>
 
-            <div className={`grid gap-5 ${sectionGridClass} lg:col-span-6`}>
+            <div className={`grid gap-5 ${sectionGridClass} ${navigationColumnClass}`}>
               {navigationSections.map(section => (
                 <div key={section.id} className="space-y-2">
                   <div>
@@ -377,8 +379,8 @@ export default function ThemeAwareFooter({
               ))}
             </div>
 
-            <div className="space-y-4 lg:col-span-3">
-              {socialSection && socialLinksToRender.length > 0 && (
+            {hasSocialSectionContent && (
+              <div className="space-y-4 lg:col-span-3">
                 <div className="space-y-3">
                   <h4 className="font-semibold text-sm uppercase tracking-wide" style={{ color: footerStyles.titleColor }}>
                     关注我们
@@ -407,8 +409,8 @@ export default function ThemeAwareFooter({
                     })}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </footer>

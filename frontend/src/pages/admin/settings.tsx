@@ -637,6 +637,51 @@ export default function AdminSettingsPage() {
               </div>
             </div>
 
+            <div className="pt-4 border-t border-semantic-dividerStrong">
+              <h3 className="text-sm font-semibold text-theme-text mb-3">页脚联系方式</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-theme-text mb-1">
+                    <Mail className="w-4 h-4 text-theme-accent" />
+                    联系邮箱
+                  </label>
+                  <ThemeAwareInput
+                    type="email"
+                    {...register('contact_email' as const)}
+                    className="px-3"
+                    placeholder="contact@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-theme-text mb-1">
+                    <Phone className="w-4 h-4 text-theme-accent" />
+                    联系电话
+                  </label>
+                  <ThemeAwareInput
+                    type="text"
+                    {...register('contact_phone' as const)}
+                    className="px-3"
+                    placeholder="400-123-4567"
+                  />
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-theme-text mb-1">
+                    <MapPin className="w-4 h-4 text-theme-accent" />
+                    联系地址
+                  </label>
+                  <ThemeAwareInput
+                    type="text"
+                    {...register('address' as const)}
+                    className="px-3"
+                    placeholder="请输入页脚展示地址"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-theme-textSecondary mt-2">
+                这三项会显示在页脚品牌区域，并同步到下方实时预览。
+              </p>
+            </div>
+
             {/* 栏目管理 */}
             <div className="pt-4 border-t border-semantic-dividerStrong">
               <h3 className="text-sm font-semibold text-theme-text mb-3">页脚栏目</h3>
